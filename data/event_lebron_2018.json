@@ -1,0 +1,58 @@
+{
+  "event_id": "evt_lebron_2018",
+  "timestamp": "2018-07-01",
+  "fork_year": 2018,
+  "simulation_window": {"start_year": 2018, "end_year": 2021},
+  "prerequisite_choices": [],
+  "type": "free_agency",
+  "title": "第三次决定",
+  "subtitle": "2018 · 詹姆斯的自由市场",
+  "description": "2018年总决赛，骑士0-4被勇士横扫。詹姆斯连续第八年打入总决赛后，再次成为自由球员。",
+  "actor": {
+    "player_id": "lebron-james",
+    "player_name": "LeBron James",
+    "age": 33,
+    "rating": 98,
+    "accolades_at_time": ["3x Champion", "3x FMVP", "2016 Cleveland Title"]
+  },
+  "choices": [
+    {
+      "choice_id": "los_angeles_lakers",
+      "label": "加盟洛杉矶湖人",
+      "team_code": "LAL",
+      "team_color": "#552583",
+      "is_real_history": true,
+      "pitch": "签约湖人，接过科比退役后的紫金军团大旗，目标复兴洛杉矶。",
+      "roster_before": ["brandon-ingram", "kyle-kuzma", "lonzo-ball", "julius-randle"],
+      "cap_space": 70000000,
+      "prerequisite_choices": []
+    },
+    {
+      "choice_id": "philadelphia_76ers",
+      "label": "加盟费城76人",
+      "team_code": "PHI",
+      "team_color": "#006BB6",
+      "is_real_history": false,
+      "pitch": "与恩比德、西蒙斯组成新三巨头，「相信过程」终于迎来超级巨星。",
+      "roster_before": ["joel-embiid", "ben-simmons", "markelle-fultz"],
+      "cap_space": 30000000,
+      "prerequisite_choices": []
+    },
+    {
+      "choice_id": "houston_rockets_2018",
+      "label": "加盟休斯顿火箭",
+      "team_code": "HOU",
+      "team_color": "#CE1141",
+      "is_real_history": false,
+      "pitch": "与哈登、保罗组成灯泡+詹姆斯超级球队，西部终极武器。",
+      "roster_before": ["james-harden", "chris-paul", "clint-capela"],
+      "cap_space": 12000000,
+      "prerequisite_choices": []
+    }
+  ],
+  "context": {
+    "season": "2018-19",
+    "salary_cap": 101869000,
+    "recent_champions": ["2015 GSW", "2016 CLE", "2017 GSW", "2018 GSW"]
+  }
+}

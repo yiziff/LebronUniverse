@@ -1,0 +1,47 @@
+{
+  "lebron-james": {
+    "id": "lebron-james",
+    "name": "LeBron James",
+    "age_2010": 25,
+    "rating_2010": 98,
+    "position": "SF",
+    "contract_status_2010": "unrestricted_free_agent",
+    "team_2010_before_decision": "CLE"
+  },
+  "dwyane-wade": {
+    "id": "dwyane-wade",
+    "name": "Dwyane Wade",
+    "age_2010": 28,
+    "rating_2010": 95,
+    "position": "SG",
+    "contract_status_2010": "unrestricted_free_agent",
+    "team_2010_before_decision": "MIA"
+  },
+  "kevin-durant": {
+    "id": "kevin-durant",
+    "name": "Kevin Durant",
+    "age_2010": 21,
+    "rating_2010": 92,
+    "position": "SF",
+    "contract_status_2010": "under_contract",
+    "team_2010_before_decision": "OKC"
+  },
+  "paul-george": {
+    "id": "paul-george",
+    "name": "Paul George",
+    "age_2010": 20,
+    "rating_2010": 72,
+    "position": "SF",
+    "contract_status_2010": "rookie",
+    "team_2010_before_decision": "IND"
+  },
+  "stephen-curry": {
+    "id": "stephen-curry",
+    "name": "Stephen Curry",
+    "age_2010": 22,
+    "rating_2010": 80,
+    "position": "PG",
+    "contract_status_2010": "under_contract",
+    "team_2010_before_decision": "GSW"
+  }
+}

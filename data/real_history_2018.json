@@ -1,0 +1,25 @@
+{
+  "branch_id": "master_2018",
+  "branch_name": "真实历史 · 2018+",
+  "color": "#D4A853",
+  "parent_event_id": "evt_lebron_2018",
+  "parent_choice_id": "los_angeles_lakers",
+  "events": [
+    {
+      "event_id": "real_014",
+      "timestamp": "2018-07-02",
+      "title": "詹姆斯签约洛杉矶湖人",
+      "description": "4年1.54亿美元加盟湖人，紫金军团迎来新领袖。",
+      "teams_affected": ["LAL", "CLE"],
+      "key_players": ["lebron-james"]
+    },
+    {
+      "event_id": "real_015",
+      "timestamp": "2020-10-11",
+      "title": "湖人2020年总冠军",
+      "description": "詹姆斯与戴维斯在泡泡园区夺冠，詹姆斯第四座FMVP。",
+      "teams_affected": ["LAL", "MIA"],
+      "key_players": ["lebron-james"]
+    }
+  ]
+}

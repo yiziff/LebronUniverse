@@ -1,0 +1,25 @@
+{
+  "branch_id": "master_2017",
+  "branch_name": "真实历史 · 2017-2018",
+  "color": "#D4A853",
+  "parent_event_id": "evt_lebron_2017",
+  "parent_choice_id": "trade_kyrie",
+  "events": [
+    {
+      "event_id": "real_012",
+      "timestamp": "2017-08-22",
+      "title": "欧文交易至凯尔特人",
+      "description": "骑士送出欧文，得到小托马斯、杰·克劳德和篮网2018首轮签。",
+      "teams_affected": ["CLE", "BOS"],
+      "key_players": ["kyrie-irving"]
+    },
+    {
+      "event_id": "real_013",
+      "timestamp": "2018-06-08",
+      "title": "骑士0-4被勇士横扫",
+      "description": "詹姆斯G1砍下51分仍难救主，骑士被勇士横扫，詹姆斯成为自由球员。",
+      "teams_affected": ["CLE", "GSW"],
+      "key_players": ["lebron-james", "kevin-durant"]
+    }
+  ]
+}

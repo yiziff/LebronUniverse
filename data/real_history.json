@@ -1,0 +1,73 @@
+{
+  "branch_id": "master",
+  "branch_name": "真实历史",
+  "color": "#D4A853",
+  "parent_event_id": "evt_lebron_2010",
+  "parent_choice_id": "miami_heat",
+  "events": [
+    {
+      "event_id": "real_001",
+      "timestamp": "2010-07-08",
+      "title": "詹姆斯宣布加盟迈阿密热火",
+      "description": "The Decision. 在ESPN全国直播中宣布：'我将把天赋带到南海岸。'与韦德、波什组成三巨头。",
+      "teams_affected": ["MIA", "CLE"],
+      "key_players": ["lebron-james"]
+    },
+    {
+      "event_id": "real_002",
+      "timestamp": "2010-07-10",
+      "title": "波什先签后换加盟热火",
+      "description": "猛龙送出波什，得到两个首轮签和一个交易特例。热火三巨头正式组建。",
+      "teams_affected": ["MIA", "TOR"],
+      "key_players": ["chris-bosh"]
+    },
+    {
+      "event_id": "real_003",
+      "timestamp": "2010-12-02",
+      "title": "骑士26连败",
+      "description": "失去詹姆斯后，骑士创造了北美职业体育最长的26连败纪录，整个赛季仅19胜。",
+      "teams_affected": ["CLE"],
+      "key_players": []
+    },
+    {
+      "event_id": "real_004",
+      "timestamp": "2011-06-12",
+      "title": "热火总决赛2-4败给小牛",
+      "description": "三巨头首年杀入总决赛，但被诺维茨基率领的小牛击败。詹姆斯G4仅得8分。",
+      "teams_affected": ["MIA", "DAL"],
+      "key_players": ["lebron-james", "dirk-nowitzki"]
+    },
+    {
+      "event_id": "real_005",
+      "timestamp": "2012-06-21",
+      "title": "热火4-1雷霆，詹姆斯首冠",
+      "description": "詹姆斯场均28.6分10.2篮板7.4助攻，拿到生涯第一个总冠军和FMVP。",
+      "teams_affected": ["MIA", "OKC"],
+      "key_players": ["lebron-james", "kevin-durant"]
+    },
+    {
+      "event_id": "real_006",
+      "timestamp": "2013-06-20",
+      "title": "热火4-3马刺，两连冠",
+      "description": "雷·阿伦G6绝平三分拯救热火。詹姆斯G7砍下37分，连庄FMVP。",
+      "teams_affected": ["MIA", "SAS"],
+      "key_players": ["lebron-james"]
+    },
+    {
+      "event_id": "real_007",
+      "timestamp": "2014-06-15",
+      "title": "热火1-4败马刺，三巨头时代终结",
+      "description": "马刺复仇成功，伦纳德获FMVP。赛后詹姆斯成为自由球员。",
+      "teams_affected": ["MIA", "SAS"],
+      "key_players": ["lebron-james"]
+    },
+    {
+      "event_id": "real_008",
+      "timestamp": "2014-07-11",
+      "title": "詹姆斯回归克利夫兰骑士",
+      "description": "在《体育画报》发表公开信：'我回家了。'宣布回归骑士，与欧文、乐福组成新三巨头。",
+      "teams_affected": ["CLE", "MIA"],
+      "key_players": ["lebron-james"]
+    }
+  ]
+}
