@@ -1,0 +1,81 @@
+{
+  "event_id": "evt_lebron_2014",
+  "timestamp": "2014-07-01",
+  "fork_year": 2014,
+  "simulation_window": {"start_year": 2014, "end_year": 2018},
+  "prerequisite_choices": [],
+  "type": "free_agency",
+  "title": "决定二",
+  "subtitle": "2014 · 勒布朗·詹姆斯的去向",
+  "description": "2014年总决赛，热火1-4不敌马刺。三巨头时代走到十字路口。詹姆斯再次成为自由球员，全联盟屏息以待。",
+  "actor": {
+    "player_id": "lebron-james",
+    "player_name": "LeBron James",
+    "age": 29,
+    "rating": 97,
+    "accolades_at_time": ["2x MVP", "2x Champion", "2x FMVP", "4x All-NBA First Team"]
+  },
+  "choices": [
+    {
+      "choice_id": "return_cleveland",
+      "label": "回归克利夫兰骑士",
+      "team_code": "CLE",
+      "team_color": "#860038",
+      "is_real_history": true,
+      "pitch": "发表《我回家了》公开信，与欧文、乐福组成新骑士三巨头。",
+      "roster_before": ["kyrie-irving", "anderson-varejao", "dion-waiters"],
+      "cap_space": 22000000,
+      "prerequisite_choices": [
+        {"fork_id": "evt_lebron_2010", "choice_ids": ["miami_heat", "new_york_knicks", "chicago_bulls"]}
+      ]
+    },
+    {
+      "choice_id": "stay_miami",
+      "label": "留守迈阿密热火",
+      "team_code": "MIA",
+      "team_color": "#98002E",
+      "is_real_history": false,
+      "pitch": "顶薪续约热火。韦德膝盖恶化，莱利考虑交易波什换取新鲜血液。",
+      "roster_before": ["dwyane-wade", "chris-bosh", "mario-chalmers"],
+      "cap_space": 8000000,
+      "prerequisite_choices": [
+        {"fork_id": "evt_lebron_2010", "choice_ids": ["miami_heat"]}
+      ]
+    },
+    {
+      "choice_id": "houston_rockets",
+      "label": "加盟休斯顿火箭",
+      "team_code": "HOU",
+      "team_color": "#CE1141",
+      "is_real_history": false,
+      "pitch": "与詹姆斯·哈登、德怀特·霍华德组成航天城三巨头，西部格局彻底改写。",
+      "roster_before": ["james-harden", "dwight-howard", "trevor-ariza"],
+      "cap_space": 15000000,
+      "prerequisite_choices": []
+    },
+    {
+      "choice_id": "keep_wiggins",
+      "label": "骑士保留维金斯",
+      "team_code": "CLE",
+      "team_color": "#860038",
+      "is_real_history": false,
+      "pitch": "拒绝用状元维金斯换乐福，亲自调教「枫叶乔丹」与欧文，走年轻运动路线。",
+      "roster_before": ["kyrie-irving", "andrew-wiggins", "anderson-varejao"],
+      "cap_space": 18000000,
+      "prerequisite_choices": [
+        {"fork_id": "evt_lebron_2010", "choice_ids": ["cleveland_cavaliers", "miami_heat"]}
+      ]
+    }
+  ],
+  "context": {
+    "season": "2014-15",
+    "salary_cap": 63065000,
+    "key_free_agents": [
+      {"name": "LeBron James", "team": "MIA", "status": "unrestricted"},
+      {"name": "Carmelo Anthony", "team": "NYK", "status": "expected_to_re-sign"},
+      {"name": "Chris Bosh", "team": "MIA", "status": "expected_to_re-sign"},
+      {"name": "Dwyane Wade", "team": "MIA", "status": "expected_to_re-sign"}
+    ],
+    "recent_champions": ["2012 MIA", "2013 MIA", "2014 SAS"]
+  }
+}

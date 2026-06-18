@@ -1,0 +1,62 @@
+{
+  "dwyane-wade": {
+    "real_milestones": [
+      {"timestamp": "2006-06-20", "title": "2006年FMVP夺冠", "description": "韦德率领热火4-2小牛，拿到生涯首冠并获FMVP，确立联盟顶级分卫地位。"},
+      {"timestamp": "2009-04-22", "title": "首轮横扫活塞", "description": "韦德场均29.8分，热火4-0横扫活塞，但球队整体竞争力仍依赖他一人。"},
+      {"timestamp": "2010-07-08", "title": "招募詹姆斯成功", "description": "韦德清空薪资空间，与詹姆斯、波什在迈阿密组成三巨头。"},
+      {"timestamp": "2011-06-12", "title": "首年总决赛失利", "description": "三巨头首年1-4败小牛，韦德与詹姆斯磨合问题暴露。"},
+      {"timestamp": "2012-06-21", "title": "热火首冠", "description": "与詹姆斯、波什联手，韦德拿到生涯第二座总冠军。"},
+      {"timestamp": "2013-06-20", "title": "热火两连冠", "description": "雷·阿伦G6绝平后夺冠，韦德贡献关键防守与组织。"},
+      {"timestamp": "2014-06-15", "title": "总决赛再败马刺", "description": "热火1-4败马刺，三巨头时代进入倒计时。"},
+      {"timestamp": "2014-07-11", "title": "降薪续约热火", "description": "为留住詹姆斯和波什，韦德主动降薪，膝盖伤病开始影响状态。"},
+      {"timestamp": "2016-06-19", "title": "再冲冠失败", "description": "詹姆斯回归骑士后，韦德率热火东决2-4负猛龙，争冠窗口关闭。"},
+      {"timestamp": "2018-02-08", "title": "交易至骑士", "description": "韦德被交易回骑士与詹姆斯重聚，但仅半个赛季后再被交易。"}
+    ],
+    "sensitive_to_james_forks": ["2010", "2014"]
+  },
+  "kevin-durant": {
+    "real_milestones": [
+      {"timestamp": "2007-06-28", "title": "榜眼加盟超音速", "description": "杜兰特被西雅图超音速选中，开启NBA生涯。"},
+      {"timestamp": "2010-04-14", "title": "首个得分王", "description": "杜兰特场均30.1分，成为NBA最年轻得分王。"},
+      {"timestamp": "2012-06-21", "title": "总决赛失利", "description": "雷霆青年军1-4败热火，杜兰特场均30.6分。"},
+      {"timestamp": "2014-05-31", "title": "西决G6绝杀马刺", "description": "杜兰特37分，雷霆3-2领先马刺。"},
+      {"timestamp": "2014-06-06", "title": "西决2-4负马刺", "description": "雷霆错失总决赛门票，杜兰特开始思考球队上限。"},
+      {"timestamp": "2016-05-30", "title": "西决3-1领先勇士", "description": "雷霆3-1领先73胜勇士，距总决赛一步之遥。"},
+      {"timestamp": "2016-06-19", "title": "西决3-4被逆转", "description": "勇士连赢三场完成逆转，杜兰特决定改变环境。"},
+      {"timestamp": "2016-07-04", "title": "加盟勇士", "description": "离开雷霆加入73胜勇士，引发联盟震动。"},
+      {"timestamp": "2017-06-12", "title": "总决赛复仇骑士", "description": "勇士4-1骑士，杜兰特获FMVP。"},
+      {"timestamp": "2018-06-08", "title": "背靠背FMVP", "description": "勇士4-0横扫骑士，杜兰特连续第二年获FMVP。"}
+    ],
+    "sensitive_to_james_forks": ["2010", "2014", "2017", "2018"]
+  },
+  "paul-george": {
+    "real_milestones": [
+      {"timestamp": "2010-06-24", "title": "第10顺位加盟步行者", "description": "新秀赛季展现全能侧翼潜力，成为步行者未来核心。"},
+      {"timestamp": "2012-05-20", "title": "季后赛突破", "description": "乔治在东部半决赛场均21分，步行者击败热火进入东决。"},
+      {"timestamp": "2013-05-18", "title": "东决战热火", "description": "步行者0-4被热火横扫，乔治首次感受詹姆斯压力。"},
+      {"timestamp": "2014-08-01", "title": "训练赛重伤", "description": "乔治在国家队训练赛中严重骨折，赛季报销。"},
+      {"timestamp": "2015-04-05", "title": "伤后复出", "description": "乔治提前复出，步行者仍无缘季后赛。"},
+      {"timestamp": "2016-05-27", "title": "东决再负骑士", "description": "步行者2-4负骑士，乔治场均28分仍难阻詹姆斯。"},
+      {"timestamp": "2017-04-24", "title": "首轮被横扫", "description": "步行者0-4被骑士横扫，乔治与步行者管理层矛盾公开。"},
+      {"timestamp": "2017-07-06", "title": "交易至雷霆", "description": "步行者送走乔治，与威少组成新双核。"},
+      {"timestamp": "2018-04-25", "title": "首轮出局", "description": "雷霆2-4负爵士，乔治与威少组合首季未达预期。"},
+      {"timestamp": "2018-07-06", "title": "续约雷霆", "description": "乔治选择与雷霆续约四年，放弃加盟湖人的可能。"}
+    ],
+    "sensitive_to_james_forks": ["2010", "2014"]
+  },
+  "stephen-curry": {
+    "real_milestones": [
+      {"timestamp": "2009-06-25", "title": "第7顺位加盟勇士", "description": "勇士选中库里，开启改变联盟打法的新纪元。"},
+      {"timestamp": "2012-05-11", "title": "首轮淘汰掘金", "description": "库里场均31.2分，勇士黑八奇迹，脚踝伤病隐忧仍在。"},
+      {"timestamp": "2015-06-16", "title": "勇士首冠", "description": "库里率队夺冠，小球时代正式到来。"},
+      {"timestamp": "2015-05-04", "title": "首座MVP", "description": "库里常规赛场均23.8分7.7助攻，全票MVP。"},
+      {"timestamp": "2016-04-13", "title": "73胜赛季", "description": "常规赛73胜创造历史，库里全票MVP。"},
+      {"timestamp": "2016-06-19", "title": "总决赛3-1被逆转", "description": "勇士3-1领先被骑士逆转，詹姆斯完成史诗级翻盘。"},
+      {"timestamp": "2017-06-12", "title": "复仇骑士夺冠", "description": "杜兰特加盟后勇士4-1骑士，库里拿到第二冠。"},
+      {"timestamp": "2018-06-08", "title": "背靠背总冠军", "description": "勇士4-0横扫骑士，库里第三座总冠军。"},
+      {"timestamp": "2018-05-28", "title": "西决横扫火箭", "description": "库里G6第三节连得14分，勇士逆转火箭进总决赛。"},
+      {"timestamp": "2018-12-23", "title": "三分历史第一", "description": "库里超越雷·阿伦，成为NBA历史三分王。"}
+    ],
+    "sensitive_to_james_forks": ["2010", "2014", "2017", "2018"]
+  }
+}

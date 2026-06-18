@@ -1,0 +1,103 @@
+<h2>设计 §1：组件树 &amp; 项目结构</h2>
+<p class="subtitle">Zustand 单一 store → Three.js 引擎 + React 浮层</p>
+
+<div class="section">
+  <h3>数据流路径</h3>
+  <pre style="margin:0;background:rgba(255,255,255,0.04);padding:16px;font-size:13px;line-height:1.7;">
+SSE Stream (FastAPI)
+    │  event_type: "timeline_event" | "stat_update" | "social_post" | "[DONE]"
+    │
+    ▼
+useSSE() hook
+    │  解析 SSE → 按 event_type 分发到 store 对应切片
+    │
+    ▼
+┌──────────── ZUSTAND STORE ────────────┐
+│                                        │
+│  graphSlice          rpgSlice          │
+│  - nodes[]           - championships   │
+│  - edges[]           - legacy           │
+│  - activeBranch      - mediaFavor       │
+│  - masterOpacity     - fanReputation    │
+│  - choiceId          - capHealth        │
+│                      - physicalToll     │
+│  socialSlice         uiSlice            │
+│  - posts[]           - phase            │
+│  - isStreaming       - selectedChoice   │
+│  - feedVisible       - error            │
+│                                        │
+└───┬──────────┬──────────┬──────────────┘
+    │          │          │
+    ▼          ▼          ▼
+┌───────┐ ┌───────┐ ┌─────────┐
+│ThreeJS│ │Hexagram│ │Social   │
+│Canvas │ │Radar   │ │Feed     │
+│(r3f)* │ │(SVG)   │ │(DOM)    │
+└───────┘ └───────┘ └─────────┘</pre>
+  <p style="margin-top:8px;color:#94a3b8;font-size:12px;">* 纯 Three.js，不用 r3f。保持完全控制。</p>
+</div>
+
+<div class="section">
+  <h3>组件层级</h3>
+  <pre style="margin:0;background:rgba(255,255,255,0.04);padding:16px;font-size:13px;line-height:1.7;">
+App.tsx
+├── ThreeCanvas.tsx          ← 占据全屏，Three.js 渲染目标
+│   ├── StarField.ts         ← 星空粒子背景（ShaderMaterial）
+│   ├── DestinyGraph.ts      ← 力导向图：节点 + 连线
+│   │   ├── ForkNode.ts      ← 分叉点球体 + 光环脉动
+│   │   ├── EventNode.ts     ← 事件小球体
+│   │   └── EdgeLine.ts      ← 连线 + 粒子流动光效
+│   ├── ParticleSystem.ts    ← 消散/聚合粒子（BufferGeometry）
+│   └── CameraController.ts  ← 轨道控制 + 飞入动画
+│
+├── ChoiceWheel.tsx          ← HTML overlay，分叉点弹出
+│   └── ChoiceCard.tsx       ← 单个选项卡片
+│
+├── HexagramRadar.tsx        ← 右下角 SVG 六芒星
+│
+├── SocialFeed.tsx           ← 左侧 HTML 瀑布流
+│   └── SocialPost.tsx       ← 单条虚拟推文
+│
+└── StatusBar.tsx            ← 底部进度文案</pre>
+</div>
+
+<div class="section">
+  <h3>项目文件结构（改动）</h3>
+  <pre style="margin:0;background:rgba(255,255,255,0.04);padding:16px;font-size:13px;line-height:1.7;">
+nba-multiverse/
+├── backend/                    ← 基本不动，扩 2 个文件
+│   ├── main.py                 ← SSE 新增 stat_update / social_post 事件类型
+│   ├── models.py               ← 新增 RPGStats, StatChange, SocialPost
+│   ├── llm_engine.py           ← 新增 generate_social_posts()
+│   ├── prompt_templates.py     ← System Prompt 增加 stat 指令
+│   ├── entity_validator.py     ← NEW: 球员白名单校验器
+│   ├── data_loader.py          ← 不动
+│   └── requirements.txt        ← 不动
+│
+├── frontend/
+│   └── src/
+│       ├── store/
+│       │   └── index.ts        ← NEW: Zustand store (4 slices)
+│       ├── engine/
+│       │   ├── ThreeCanvas.tsx  ← NEW
+│       │   ├── StarField.ts    ← NEW
+│       │   ├── DestinyGraph.ts ← NEW
+│       │   ├── ParticleSystem.ts← NEW
+│       │   └── CameraController.ts← NEW
+│       ├── components/
+│       │   ├── ChoiceWheel.tsx  ← NEW
+│       │   ├── ChoiceCard.tsx   ← NEW
+│       │   ├── HexagramRadar.tsx← NEW
+│       │   ├── SocialFeed.tsx   ← NEW
+│       │   ├── SocialPost.tsx   ← NEW
+│       │   └── StatusBar.tsx    ← NEW
+│       ├── hooks/
+│       │   └── useSSE.ts       ← NEW
+│       └── types/
+│           └── index.ts        ← NEW: TS 类型（从 Pydantic 映射）
+│
+└── data/                       ← 不动（2010 分叉点已完）
+    ├── event_lebron_2010.json
+    ├── players.json
+    └── real_history.json</pre>
+</div>

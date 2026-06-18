@@ -1,0 +1,66 @@
+{
+  "event_id": "evt_lebron_2017",
+  "timestamp": "2017-07-01",
+  "fork_year": 2017,
+  "simulation_window": {"start_year": 2017, "end_year": 2018},
+  "prerequisite_choices": [
+    {"fork_id": "evt_lebron_2014", "choice_ids": ["return_cleveland", "keep_wiggins"]}
+  ],
+  "type": "trade_crisis",
+  "title": "欧文的决裂",
+  "subtitle": "2017 · 骑士内讧与交易抉择",
+  "description": "2017年总决赛骑士1-4败勇士。休赛期，凯里·欧文申请交易，要求离开詹姆斯阴影。骑士管理层面临艰难抉择。",
+  "actor": {
+    "player_id": "lebron-james",
+    "player_name": "LeBron James",
+    "age": 32,
+    "rating": 97,
+    "accolades_at_time": ["3x Champion", "3x FMVP", "2016 Finals MVP"]
+  },
+  "choices": [
+    {
+      "choice_id": "trade_kyrie",
+      "label": "交易欧文（真实历史）",
+      "team_code": "CLE",
+      "team_color": "#860038",
+      "is_real_history": true,
+      "pitch": "将欧文送至凯尔特人，换来小托马斯、克劳德和篮网首轮签。",
+      "roster_before": ["kyrie-irving", "kevin-love", "tristan-thompson"],
+      "cap_space": 5000000,
+      "prerequisite_choices": [
+        {"fork_id": "evt_lebron_2014", "choice_ids": ["return_cleveland", "keep_wiggins"]}
+      ]
+    },
+    {
+      "choice_id": "keep_kyrie",
+      "label": "强行留下欧文",
+      "team_code": "CLE",
+      "team_color": "#860038",
+      "is_real_history": false,
+      "pitch": "詹姆斯和管理层拒绝交易，召开更衣室会议，2018年全力詹+欧文复仇勇士。",
+      "roster_before": ["kyrie-irving", "kevin-love", "tristan-thompson"],
+      "cap_space": 5000000,
+      "prerequisite_choices": [
+        {"fork_id": "evt_lebron_2014", "choice_ids": ["return_cleveland", "keep_wiggins"]}
+      ]
+    },
+    {
+      "choice_id": "pg_bledsoe_trade",
+      "label": "截胡PG三方交易",
+      "team_code": "CLE",
+      "team_color": "#860038",
+      "is_real_history": false,
+      "pitch": "欧文去太阳，保罗·乔治和埃里克·布莱德索来骑士，詹姆斯搭档巅峰PG13。",
+      "roster_before": ["kyrie-irving", "kevin-love"],
+      "cap_space": 3000000,
+      "prerequisite_choices": [
+        {"fork_id": "evt_lebron_2014", "choice_ids": ["return_cleveland", "keep_wiggins"]}
+      ]
+    }
+  ],
+  "context": {
+    "season": "2017-18",
+    "salary_cap": 99093000,
+    "key_context": "勇士2017年组成杜兰特+库里+汤普森+格林+伊戈达拉死亡五小"
+  }
+}

@@ -1,0 +1,139 @@
+<h2>设计 §5：后端改动 &amp; 防幻觉机制</h2>
+<p class="subtitle">扩 models · Prompt 升级 · 实体白名单 · 错误恢复</p>
+
+<div class="section">
+  <h3>models.py 新增</h3>
+  <pre style="margin:0;background:rgba(255,255,255,0.04);padding:16px;font-size:12px;line-height:1.6;">
+class StatChange(BaseModel):
+    dimension: str   # "championships" | "legacy" | "media_favor"
+                     # | "fan_reputation" | "cap_health" | "physical_toll"
+    delta: int       # ± 数值
+    reason: str      # ≤30 字变动原因
+
+class SocialPost(BaseModel):
+    username: str       # "Skip Bayless"
+    handle: str         # "@RealSkipBayless"
+    avatar_color: str   # CSS color
+    content: str        # ≤100 字正文
+    sentiment: str      # "angry" | "excited" | "sarcastic" | "shocked" | "hate"
+
+class SSEEvent(BaseModel):
+    """统一 SSE 事件包装"""
+    event_type: Literal["timeline_event", "stat_update", "social_post", "done", "error"]
+    payload: dict</pre>
+</div>
+
+<div class="section">
+  <h3>Prompt 升级</h3>
+  <div class="mockup">
+    <div class="mockup-header">System Prompt 新增两条指令</div>
+    <div class="mockup-body" style="font-size:12px;line-height:1.6;padding:12px;">
+
+      <p style="color:#60a5fa;"><strong>新增 §1：RPG 状态变动</strong></p>
+      <pre style="margin:0;background:rgba(255,255,255,0.04);padding:12px;">
+对于你生成的每个事件，评估它对勒布朗·詹姆斯六维状态的影响：
+- championships: 总冠军数 (0-7)
+- legacy: 历史地位 (0-100)
+- media_favor: 媒体好感度 (0-100)
+- fan_reputation: 球迷口碑 (0-100)
+- cap_health: 球队薪资健康度 (0-100，越高越健康)
+- physical_toll: 体能透支率 (0-100，越高越透支)
+
+变动规则：
+- 加盟大市场球队 → media_favor +20~30, fan_reputation +10~15
+- 组建超级球队 → cap_health -15~25, legacy +5~10
+- 季后赛走远 → physical_toll +10~20
+- 赢得总冠军 → championships +1, legacy +15~25
+- 失败/横扫 → media_favor -10~20, fan_reputation -5~10</pre>
+
+      <p style="color:#60a5fa;margin-top:12px;"><strong>新增 §2：虚拟社交舆论</strong></p>
+      <pre style="margin:0;background:rgba(255,255,255,0.04);padding:12px;">
+在推演完所有事件后，生成 3-5 条模拟的社交媒体反应：
+
+角色配比：
+- 1 条来自 NBA 名嘴（Stephen A. Smith / Skip Bayless 风格）
+- 1 条来自涉及的球队死忠球迷（极度亢奋或极度愤怒）
+- 1 条来自"詹黑"阵营 — 用经典的勒布朗黑梗：
+  "Who's your daddy?"、"LeBronto"、"Buster"、"🐐❌"、"猩猩"、
+  "没有大腿不会打球"、"决定1/2/3/N"、"not 1, not 2..."
+- 0-1 条来自中立媒体 / 记者
+- 0-1 条恶搞风格
+
+风格要求：
+- 还原真实 NBA 推特的火药味和幽默感
+- 中文 + 英文混用（"LEBRON TO THE KNICKS?! 纽约球迷过年了！！"）
+- 每条 ≤ 140 字（模拟推特长度）
+- 情感标签: angry / excited / sarcastic / shocked / hate</pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>entity_validator.py — 实体白名单</h3>
+  <div class="mockup">
+    <div class="mockup-header">防止 AI 发明不存在的球员</div>
+    <div class="mockup-body" style="font-size:12px;line-height:1.6;padding:12px;">
+      <pre style="margin:0;background:rgba(255,255,255,0.04);padding:12px;line-height:1.6;">
+# 白名单：从 players.json + 手动扩展
+VALID_PLAYERS = {
+    "lebron-james", "dwyane-wade", "chris-bosh", "derrick-rose",
+    "amare-stoudemire", "carmelo-anthony", "chris-paul", "dwight-howard",
+    "dirk-nowitzki", "kevin-durant", "kobe-bryant", "paul-george",
+    "john-wall", "demarcus-cousins", "gordon-hayward",
+    # 2010 年联盟其他关键球员（扩展至 ~80 人）
+    "kyrie-irving", "klay-thompson", "draymond-green",
+    "kawhi-leonard", "damian-lillard", "anthony-davis",
+    ...
+}
+
+def validate_events(events: list[dict]) -> tuple[list[dict], list[str]]:
+    """
+    校验 AI 生成的每个事件
+    返回: (通过的事件, 被拒绝的实体列表)
+    """
+    rejected = []
+    clean_events = []
+
+    for event in events:
+        # 提取事件中所有人名
+        names = extract_player_names(event)
+        unknowns = [n for n in names if n not in VALID_PLAYERS]
+
+        if unknowns:
+            rejected.extend(unknowns)
+            # 整个事件被标记为 rejected
+            # → 触发 LLM 重试，附带错误信息
+        else:
+            clean_events.append(event)
+
+    return clean_events, rejected</pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>错误恢复策略</h3>
+  <div class="mockup">
+    <div class="mockup-header">3 层容错</div>
+    <div class="mockup-body" style="font-size:12px;line-height:1.6;padding:12px;">
+      <table style="width:100%;color:#cbd5e1;font-size:12px;">
+        <tr style="color:#94a3b8;"><th style="text-align:left;padding:6px;">层级</th><th style="text-align:left;padding:6px;">场景</th><th style="text-align:left;padding:6px;">行为</th></tr>
+        <tr>
+          <td style="padding:6px;">L1</td>
+          <td style="padding:6px;">LLM 发明不存在球员</td>
+          <td style="padding:6px;">validator 拦截 → 重试（Prompt 注入禁用名单）→ 最多 3 次</td>
+        </tr>
+        <tr>
+          <td style="padding:6px;">L2</td>
+          <td style="padding:6px;">LLM 返回空/格式错</td>
+          <td style="padding:6px;">fallback 解析 → 重试 → 3 次后返回已有部分事件 + warning</td>
+        </tr>
+        <tr>
+          <td style="padding:6px;">L3</td>
+          <td style="padding:6px;">API 挂了 / 超时</td>
+          <td style="padding:6px;">SSE error 事件 → 前端显示"AI 暂时不可用" + 重试按钮</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>

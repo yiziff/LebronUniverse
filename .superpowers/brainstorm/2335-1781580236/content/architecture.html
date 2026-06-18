@@ -1,0 +1,98 @@
+<h2>架构方案对比</h2>
+<p class="subtitle">Three.js 与 React 的三种协作模式</p>
+
+<div class="section">
+  <h3>方案 A：React 管控 Three.js</h3>
+  <div class="mockup">
+    <div class="mockup-header">React owns state → Three.js is a dumb renderer</div>
+    <div class="mockup-body" style="font-size:13px;line-height:1.8;padding:16px;">
+      <pre style="margin:0;background:rgba(255,255,255,0.05);padding:12px;">
+Zustand Store (所有状态)
+    │
+    ├── ▶ React App
+    │       ├── ▶ &lt;ThreeCanvas&gt; (props: nodes, edges)
+    │       │       └── 每帧从 store 读取渲染
+    │       ├── ▶ &lt;HexagramRadar&gt; (props: stats)
+    │       └── ▶ &lt;SocialFeed&gt; (props: posts)
+    │
+    └── SSE Event → dispatch → store 更新 → re-render</pre>
+      <div class="pros-cons" style="margin-top:12px;">
+        <div class="pros"><h4>优势</h4><ul>
+          <li>React 开发者友好，调试方便</li>
+          <li>状态流清晰，单向数据流</li>
+        </ul></div>
+        <div class="cons"><h4>问题</h4><ul>
+          <li>Three.js 跟着 React re-render 走，粒子动画帧率可能不稳</li>
+          <li>60fps 动画循环与 React 18 并发模式可能冲突</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>方案 B：Three.js 自成引擎，React 只做浮层</h3>
+  <div class="mockup">
+    <div class="mockup-header">Three.js owns 3D world → React is overlay UI only</div>
+    <div class="mockup-body" style="font-size:13px;line-height:1.8;padding:16px;">
+      <pre style="margin:0;background:rgba(255,255,255,0.05);padding:12px;">
+Three.js Engine (独立动画循环，独立场景状态)
+    │
+    ├── requestAnimationFrame 循环
+    │   └── 控制所有 3D 渲染 + 粒子系统
+    │
+EventBus (双向桥)
+    │
+    ├── Three → React: "节点被点击" / "动画完成"
+    └── React → Three: "生成分支" / "切换选项"
+
+React Layer (HTML overlay, z-index 在 Canvas 上方)
+    ├── ▶ &lt;ChoiceWheel&gt;
+    ├── ▶ &lt;HexagramRadar&gt;
+    └── ▶ &lt;SocialFeed&gt;</pre>
+      <div class="pros-cons" style="margin-top:12px;">
+        <div class="pros"><h4>优势</h4><ul>
+          <li>Three.js 完全控制渲染，帧率保证</li>
+          <li>粒子系统性能最优</li>
+        </ul></div>
+        <div class="cons"><h4>问题</h4><ul>
+          <li>两套状态各自维护，同步容易出 bug</li>
+          <li>React 组件不能直接读取 Three 内部状态</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>方案 C：混合模式 <span class="label">推荐</span></h3>
+  <div class="mockup" style="border:2px solid #60a5fa;">
+    <div class="mockup-header">Zustand 单一真相源 + Three.js 本地动画状态</div>
+    <div class="mockup-body" style="font-size:13px;line-height:1.8;padding:16px;">
+      <pre style="margin:0;background:rgba(255,255,255,0.05);padding:12px;">
+Zustand Store (唯一数据源)
+    │  nodes[] / edges[] / rpgStats / socialPosts / uiState
+    │
+    ├── ▶ useGraphStore() (订阅)
+    │       └── &lt;ThreeCanvas&gt;
+    │             ├── useEffect: store 变化 → 更新 Three.js scene
+    │             ├── requestAnimationFrame: 粒子 / 动画 / 力导向
+    │             └── 事件回调 → store.dispatch() (例如: 点击节点)
+    │
+    ├── ▶ useRPGStore() → &lt;HexagramRadar&gt; (纯 React SVG)
+    └── ▶ useSocialStore() → &lt;SocialFeed&gt; (纯 React DOM)
+</pre>
+      <div class="pros-cons" style="margin-top:12px;">
+        <div class="pros"><h4>优势</h4><ul>
+          <li>Zustand 单一真相源，Three.js 和 React 都从同一个 store 读取</li>
+          <li>Three.js 用 useEffect 响应数据变化，用 rAF 独立跑动画</li>
+          <li>粒子 / 六芒星 / 舆论三套 UI 互不干扰</li>
+        </ul></div>
+        <div class="cons"><h4>代价</h4><ul>
+          <li>需要精细控制 useEffect deps 避免不必要的 Three.js 重建</li>
+          <li>rAF 循环中不能直接读 React state（用 ref 桥接）</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>

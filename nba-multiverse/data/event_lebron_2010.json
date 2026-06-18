@@ -1,0 +1,86 @@
+{
+  "event_id": "evt_lebron_2010",
+  "timestamp": "2010-07-08",
+  "fork_year": 2010,
+  "simulation_window": {"start_year": 2010, "end_year": 2014},
+  "prerequisite_choices": [],
+  "type": "free_agency",
+  "title": "The Decision",
+  "subtitle": "勒布朗·詹姆斯的选择",
+  "description": "2010年夏天，25岁的勒布朗·詹姆斯成为不受限制自由球员。两届MVP，正在寻找生涯第一个总冠军。整个联盟都在等待他的决定。",
+  "actor": {
+    "player_id": "lebron-james",
+    "player_name": "LeBron James",
+    "age": 25,
+    "rating": 98,
+    "accolades_at_time": ["2x MVP", "6x All-Star", "4x All-NBA First Team"]
+  },
+  "choices": [
+    {
+      "choice_id": "miami_heat",
+      "label": "迈阿密热火",
+      "team_code": "MIA",
+      "team_color": "#98002E",
+      "is_real_history": true,
+      "pitch": "与德维恩·韦德、克里斯·波什组成超级球队。帕特·莱利提供冠军文化和没有州税的佛罗里达。",
+      "roster_before": ["dwyane-wade", "mario-chalmers", "michael-beasley", "udonis-haslem"],
+      "cap_space": 28000000
+    },
+    {
+      "choice_id": "new_york_knicks",
+      "label": "纽约尼克斯",
+      "team_code": "NYK",
+      "team_color": "#F58426",
+      "is_real_history": false,
+      "pitch": "麦迪逊广场花园。世界最大市场。与卡梅罗·安东尼联手，在篮球圣殿打造王朝。",
+      "roster_before": ["carmelo-anthony", "wilson-chandler", "landry-fields", "tony-douglas"],
+      "cap_space": 18000000
+    },
+    {
+      "choice_id": "chicago_bulls",
+      "label": "芝加哥公牛",
+      "team_code": "CHI",
+      "team_color": "#CE1141",
+      "is_real_history": false,
+      "pitch": "联手22岁的德里克·罗斯。继承乔丹的遗产，公牛复兴就在此刻。",
+      "roster_before": ["derrick-rose", "kirk-hinrich", "taj-gibson", "james-johnson"],
+      "cap_space": 5000000
+    },
+    {
+      "choice_id": "cleveland_cavaliers",
+      "label": "留守克利夫兰骑士",
+      "team_code": "CLE",
+      "team_color": "#860038",
+      "is_real_history": false,
+      "pitch": "家乡英雄。骑士承诺围绕你继续补强阵容。在克利夫兰夺冠的意义超过在任何其他地方。",
+      "roster_before": ["antawn-jamison", "mo-williams", "anderson-varejao", "jj-hickson"],
+      "cap_space": 32000000
+    }
+  ],
+  "context": {
+    "season": "2010-11",
+    "salary_cap": 58044000,
+    "luxury_tax_line": 70307000,
+    "key_free_agents": [
+      {"name": "Dwyane Wade", "team": "MIA", "status": "expected_to_re-sign"},
+      {"name": "Chris Bosh", "team": "TOR", "status": "considering_heat_or_bulls"},
+      {"name": "Amar'e Stoudemire", "team": "NYK", "status": "already_signed_5yr_100m"},
+      {"name": "Carlos Boozer", "team": "CHI", "status": "already_signed_5yr_80m"},
+      {"name": "Joe Johnson", "team": "ATL", "status": "expected_to_re-sign_max"},
+      {"name": "Dirk Nowitzki", "team": "DAL", "status": "expected_to_re-sign"},
+      {"name": "Paul Pierce", "team": "BOS", "status": "expected_to_re-sign"},
+      {"name": "Ray Allen", "team": "BOS", "status": "expected_to_re-sign"}
+    ],
+    "rookie_class_2010_top10": [
+      "John Wall (WAS, #1)",
+      "Evan Turner (PHI, #2)",
+      "Derrick Favors (NJN, #3)",
+      "DeMarcus Cousins (SAC, #5)",
+      "Greg Monroe (DET, #7)",
+      "Gordon Hayward (UTA, #9)",
+      "Paul George (IND, #10)"
+    ],
+    "recent_champions": ["2008 BOS", "2009 LAL", "2010 LAL"],
+    "top_teams_2010": ["LAL", "BOS", "ORL", "CLE", "DAL", "PHX"]
+  }
+}

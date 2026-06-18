@@ -1,0 +1,41 @@
+{
+  "branch_id": "master_2014",
+  "branch_name": "真实历史 · 2014-2018",
+  "color": "#D4A853",
+  "parent_event_id": "evt_lebron_2014",
+  "parent_choice_id": "return_cleveland",
+  "events": [
+    {
+      "event_id": "real_008",
+      "timestamp": "2014-07-11",
+      "title": "詹姆斯回归克利夫兰骑士",
+      "description": "在《体育画报》发表公开信：'我回家了。'宣布回归骑士，与欧文、乐福组成新三巨头。",
+      "teams_affected": ["CLE", "MIA"],
+      "key_players": ["lebron-james"]
+    },
+    {
+      "event_id": "real_009",
+      "timestamp": "2014-08-23",
+      "title": "骑士交易得到凯文·乐福",
+      "description": "用状元维金斯和安东尼·本内特换取森林狼的凯文·乐福，骑士三巨头成型。",
+      "teams_affected": ["CLE", "MIN"],
+      "key_players": ["kevin-love"]
+    },
+    {
+      "event_id": "real_010",
+      "timestamp": "2016-06-19",
+      "title": "骑士1-3逆转勇士夺冠",
+      "description": "詹姆斯G7三双，欧文G7关键三分，克利夫兰52年来首冠。",
+      "teams_affected": ["CLE", "GSW"],
+      "key_players": ["lebron-james", "kevin-durant"]
+    },
+    {
+      "event_id": "real_011",
+      "timestamp": "2017-06-12",
+      "title": "骑士1-4败勇士",
+      "description": "杜兰特+库里勇士夺冠，欧文申请交易，骑士王朝危机。",
+      "teams_affected": ["CLE", "GSW"],
+      "key_players": ["lebron-james", "kevin-durant"]
+    }
+  ]
+}

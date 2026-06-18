@@ -1,0 +1,209 @@
+import type { ChoiceData, PlayerFateDelta, PlayerCareerEvent } from '../types'
+
+/** Cross-impact rules mirrored from backend data/cross_impact_rules.json */
+const RULES: Record<string, {
+  immediate_fates?: Array<{
+    player_id: string
+    legacy?: number
+    ring_chance?: number
+    media_heat?: number
+    team_fit?: number
+    reason: string
+  }>
+  immediate_career_events?: Array<{
+    player_id: string
+    timestamp: string
+    title: string
+    description: string
+    vs_real_history?: string
+  }>
+}> = {
+  lebron_new_york_knicks_2010: {
+    immediate_fates: [
+      { player_id: 'dwyane-wade', legacy: -6, ring_chance: -20, media_heat: -8, team_fit: -12, reason: '纽约：韦德失去三巨头窗口' },
+      { player_id: 'paul-george', legacy: -2, ring_chance: -4, media_heat: -1, team_fit: 0, reason: '纽约：东部又多一支豪强' },
+      { player_id: 'kevin-durant', legacy: -1, ring_chance: -3, media_heat: 0, team_fit: 0, reason: '纽约：联盟权力东移' },
+      { player_id: 'stephen-curry', legacy: -1, ring_chance: -2, media_heat: 1, team_fit: 0, reason: '纽约：西部争冠窗口变化' },
+    ],
+    immediate_career_events: [
+      { player_id: 'dwyane-wade', timestamp: '2010-07-09', title: '三巨头计划流产', description: '詹姆斯选择纽约而非迈阿密，韦德必须独自扛起热火争冠重任。', vs_real_history: '真实历史：詹姆斯宣布加盟热火，与韦德组三巨头夺冠。' },
+      { player_id: 'paul-george', timestamp: '2010-07-09', title: '东部格局骤变', description: '詹姆斯落户纽约，步行者等东部球队争冠难度陡增。', vs_real_history: '真实历史：詹姆斯去热火，乔治在步行者成长。' },
+    ],
+  },
+  lebron_chicago_bulls_2010: {
+    immediate_fates: [
+      { player_id: 'paul-george', legacy: -4, ring_chance: -8, media_heat: -2, team_fit: -1, reason: '芝加哥：步行者争冠窗口被压' },
+      { player_id: 'dwyane-wade', legacy: -8, ring_chance: -22, media_heat: -10, team_fit: -14, reason: '芝加哥：热火招募梦碎' },
+      { player_id: 'kevin-durant', legacy: -2, ring_chance: -4, media_heat: -1, team_fit: 0, reason: '芝加哥：东部超级球队诞生' },
+      { player_id: 'stephen-curry', legacy: -2, ring_chance: -3, media_heat: 0, team_fit: 0, reason: '芝加哥：联盟格局重塑' },
+    ],
+    immediate_career_events: [
+      { player_id: 'paul-george', timestamp: '2010-07-09', title: '东决对手升级', description: '詹姆斯加盟公牛，步行者未来数年东决之路更加艰难。', vs_real_history: '真实历史：2013年步行者0-4被热火横扫。' },
+      { player_id: 'dwyane-wade', timestamp: '2010-07-09', title: '迈阿密招募梦碎', description: '热火清空空间却未能签下詹姆斯，韦德续约但竞争力被公牛压制。', vs_real_history: '真实历史：韦德与詹姆斯夺冠。' },
+    ],
+  },
+  lebron_cleveland_cavaliers_2010: {
+    immediate_fates: [
+      { player_id: 'dwyane-wade', legacy: -10, ring_chance: -25, media_heat: -12, team_fit: -15, reason: '留守骑士：热火三巨头流产' },
+      { player_id: 'kevin-durant', legacy: -2, ring_chance: -4, media_heat: -1, team_fit: 0, reason: '留守骑士：东部格局重塑' },
+      { player_id: 'paul-george', legacy: -3, ring_chance: -5, media_heat: -1, team_fit: 0, reason: '留守骑士：东部又多一支豪强' },
+      { player_id: 'stephen-curry', legacy: 1, ring_chance: 2, media_heat: 1, team_fit: 0, reason: '留守骑士：西部竞争相对缓和' },
+    ],
+    immediate_career_events: [
+      { player_id: 'dwyane-wade', timestamp: '2010-07-09', title: '热火王朝路线终结', description: '詹姆斯留守骑士，迈阿密三巨头从未成立，韦德冠军窗口大幅收窄。', vs_real_history: '真实历史：2012、2013年热火两连冠。' },
+      { player_id: 'kevin-durant', timestamp: '2010-07-09', title: '雷霆争冠窗口延长', description: '詹姆斯留守东部，雷霆青年军西部之路相对清晰。', vs_real_history: '真实历史：2012年雷霆总决赛负热火。' },
+    ],
+  },
+  lebron_return_cleveland_2014: {
+    immediate_fates: [
+      { player_id: 'dwyane-wade', legacy: -4, ring_chance: -8, media_heat: -3, team_fit: -5, reason: '回归骑士：韦德失去最佳搭档' },
+      { player_id: 'kevin-durant', legacy: 2, ring_chance: 4, media_heat: 1, team_fit: 0, reason: '回归骑士：西部竞争格局变化' },
+      { player_id: 'paul-george', legacy: -2, ring_chance: -3, media_heat: 0, team_fit: 0, reason: '回归骑士：东部骑士再成霸主' },
+      { player_id: 'stephen-curry', legacy: 3, ring_chance: 5, media_heat: 2, team_fit: 0, reason: '回归骑士：勇士西部压力略减' },
+    ],
+    immediate_career_events: [
+      { player_id: 'dwyane-wade', timestamp: '2014-07-11', title: '热火时代落幕', description: '詹姆斯回归骑士，韦德在迈阿密独自扛起球队。', vs_real_history: '真实历史：韦德与詹姆斯在热火夺冠后分手。' },
+      { player_id: 'paul-george', timestamp: '2014-07-11', title: '步行者重新评估', description: '詹姆斯回归骑士，乔治与步行者的争冠路线被迫调整。', vs_real_history: '真实历史：2014年乔治伤后复出，步行者仍争东部。' },
+    ],
+  },
+  lebron_stay_miami_2014: {
+    immediate_fates: [
+      { player_id: 'dwyane-wade', legacy: 5, ring_chance: 8, media_heat: 4, team_fit: 3, reason: '留守热火：韦德继续搭档' },
+      { player_id: 'kevin-durant', legacy: -2, ring_chance: -3, media_heat: 0, team_fit: 0, reason: '留守热火：东部格局持续' },
+      { player_id: 'paul-george', legacy: 2, ring_chance: 3, media_heat: 1, team_fit: 0, reason: '留守热火：东部竞争者减少' },
+    ],
+    immediate_career_events: [
+      { player_id: 'dwyane-wade', timestamp: '2014-07-15', title: '韦德继续扛旗', description: '詹姆斯留守热火，韦德仍是球队灵魂，球队继续争冠。', vs_real_history: '真实历史：詹姆斯离队，热火开始重建。' },
+    ],
+  },
+  lebron_houston_rockets_2014: {
+    immediate_fates: [
+      { player_id: 'kevin-durant', legacy: -3, ring_chance: -5, media_heat: -1, team_fit: 0, reason: '火箭：西部超级球队诞生' },
+      { player_id: 'dwyane-wade', legacy: -5, ring_chance: -10, media_heat: -4, team_fit: -6, reason: '火箭：韦德彻底失去詹' },
+      { player_id: 'stephen-curry', legacy: -4, ring_chance: -6, media_heat: -1, team_fit: 0, reason: '火箭：西部争冠难度飙升' },
+    ],
+    immediate_career_events: [
+      { player_id: 'kevin-durant', timestamp: '2014-07-12', title: '西部新超级球队', description: '詹姆斯加盟火箭，雷霆与勇士的西部之路更加艰难。', vs_real_history: '真实历史：詹姆斯回归骑士，火箭继续哈登单核路线。' },
+      { player_id: 'dwyane-wade', timestamp: '2014-07-12', title: '彻底失去詹姆斯', description: '詹姆斯加盟火箭而非回归骑士或留守热火，韦德在迈阿密独木难支。', vs_real_history: '真实历史：詹姆斯回归骑士，韦德与热火时代落幕。' },
+    ],
+  },
+  lebron_keep_wiggins_2014: {
+    immediate_fates: [
+      { player_id: 'kevin-durant', legacy: 2, ring_chance: 4, media_heat: 1, team_fit: 0, reason: '留维金斯：骑士青年军崛起' },
+      { player_id: 'dwyane-wade', legacy: -3, ring_chance: -5, media_heat: -1, team_fit: 0, reason: '留维金斯：东部新威胁' },
+      { player_id: 'paul-george', legacy: -2, ring_chance: -4, media_heat: 0, team_fit: 0, reason: '留维金斯：骑士运动能力拉满' },
+    ],
+    immediate_career_events: [
+      {
+        player_id: 'paul-george',
+        timestamp: '2014-08-23',
+        title: '骑士青年军成东部威胁',
+        description: '詹姆斯选择保留维金斯而非换乐福，骑士运动能力拉满，步行者压力增大。',
+        vs_real_history: '真实历史：骑士用维金斯换乐福组三巨头。',
+      },
+    ],
+  },
+  lebron_trade_kyrie_2017: {
+    immediate_fates: [
+      { player_id: 'kevin-durant', legacy: 3, ring_chance: 5, media_heat: 2, team_fit: 0, reason: '交易欧文：骑士阵容变化' },
+      { player_id: 'stephen-curry', legacy: 2, ring_chance: 4, media_heat: 1, team_fit: 0, reason: '交易欧文：骑勇格局再变' },
+      { player_id: 'paul-george', legacy: -1, ring_chance: -2, media_heat: 0, team_fit: 0, reason: '交易欧文：东部竞争格局变' },
+    ],
+    immediate_career_events: [
+      { player_id: 'stephen-curry', timestamp: '2017-08-22', title: '骑勇对决再起变数', description: '骑士交易欧文后阵容重组，2018年总决赛对阵勇士出现新变数。', vs_real_history: '真实历史：欧文离队，骑士2018被横扫。' },
+      { player_id: 'kevin-durant', timestamp: '2017-08-22', title: '骑士变阵', description: '欧文被交易，骑士以新阵容冲击勇士，杜兰特卫冕之路出现变数。', vs_real_history: '真实历史：欧文主动申请交易，骑士2018被横扫。' },
+    ],
+  },
+  lebron_keep_kyrie_2017: {
+    immediate_fates: [
+      { player_id: 'kevin-durant', legacy: -4, ring_chance: -8, media_heat: -2, team_fit: 0, reason: '强留欧文：骑士双核复仇窗口' },
+      { player_id: 'stephen-curry', legacy: -3, ring_chance: -5, media_heat: -1, team_fit: 0, reason: '强留欧文：勇士卫冕压力增大' },
+      { player_id: 'paul-george', legacy: 1, ring_chance: 2, media_heat: 0, team_fit: 0, reason: '强留欧文：东部格局稳定' },
+    ],
+    immediate_career_events: [
+      { player_id: 'kevin-durant', timestamp: '2017-07-15', title: '骑勇对决再起', description: '欧文留队，2018年骑士以完整阵容冲击勇士。', vs_real_history: '真实历史：欧文离队，骑士2018被横扫。' },
+    ],
+  },
+  lebron_pg_bledsoe_trade_2017: {
+    immediate_fates: [
+      { player_id: 'kevin-durant', legacy: -5, ring_chance: -10, media_heat: -3, team_fit: 0, reason: 'PG交易：骑士超级阵容' },
+      { player_id: 'paul-george', legacy: 6, ring_chance: 10, media_heat: 8, team_fit: 4, reason: 'PG交易：加盟骑士争冠' },
+      { player_id: 'stephen-curry', legacy: -3, ring_chance: -6, media_heat: -1, team_fit: 0, reason: 'PG交易：勇士卫冕遇强敌' },
+    ],
+    immediate_career_events: [
+      { player_id: 'paul-george', timestamp: '2017-08-23', title: '乔治加盟骑士', description: '詹姆斯推动交易，乔治与乐福组成新骑士双星争冠阵容。', vs_real_history: '真实历史：乔治2017年交易至雷霆。' },
+    ],
+  },
+  lebron_los_angeles_lakers_2018: {
+    immediate_fates: [
+      { player_id: 'kevin-durant', legacy: 2, ring_chance: 3, media_heat: 1, team_fit: 0, reason: '加盟湖人：西部格局再变' },
+      { player_id: 'stephen-curry', legacy: -2, ring_chance: -4, media_heat: 0, team_fit: 0, reason: '加盟湖人：勇士西决对手升级' },
+    ],
+    immediate_career_events: [
+      { player_id: 'kevin-durant', timestamp: '2018-07-02', title: '西部新对决', description: '詹姆斯加盟湖人，杜兰特与勇士面临新的西部挑战。', vs_real_history: '真实历史：詹姆斯2018年加盟湖人，与勇士分处东西部。' },
+    ],
+  },
+  lebron_philadelphia_76ers_2018: {
+    immediate_fates: [
+      { player_id: 'kevin-durant', legacy: -3, ring_chance: -6, media_heat: 2, team_fit: 0, reason: '加盟76人：东部新超级球队' },
+      { player_id: 'paul-george', legacy: 2, ring_chance: 0, media_heat: 3, team_fit: 0, reason: '加盟76人：东部格局震动' },
+      { player_id: 'stephen-curry', legacy: 1, ring_chance: 2, media_heat: 1, team_fit: 0, reason: '加盟76人：勇士东部压力略减' },
+    ],
+    immediate_career_events: [
+      { player_id: 'kevin-durant', timestamp: '2018-07-02', title: '东部新超级球队', description: '詹姆斯加盟76人，杜兰特与勇士的总决赛对手可能变为东部新豪门。', vs_real_history: '真实历史：詹姆斯2018年加盟湖人，76人未组超级球队。' },
+      { player_id: 'stephen-curry', timestamp: '2018-07-02', title: '总决赛对手生变', description: '詹姆斯东移费城，勇士卫冕之路面临新的东部挑战。', vs_real_history: '真实历史：詹姆斯加盟湖人，骑勇不再对决。' },
+    ],
+  },
+  lebron_houston_rockets_2018: {
+    immediate_fates: [
+      { player_id: 'kevin-durant', legacy: -6, ring_chance: -12, media_heat: -2, team_fit: 0, reason: '火箭2018：西部终极武器' },
+      { player_id: 'stephen-curry', legacy: -5, ring_chance: -10, media_heat: -2, team_fit: 0, reason: '火箭2018：勇士卫冕最大威胁' },
+      { player_id: 'paul-george', legacy: 1, ring_chance: 2, media_heat: 1, team_fit: 0, reason: '火箭2018：东部格局变化' },
+    ],
+    immediate_career_events: [
+      { player_id: 'stephen-curry', timestamp: '2018-07-02', title: '西决最大威胁', description: '詹姆斯加盟火箭，勇士西部卫冕面临灯泡+詹姆斯的终极考验。', vs_real_history: '真实历史：詹姆斯加盟湖人，火箭2018西决负勇士。' },
+      { player_id: 'kevin-durant', timestamp: '2018-07-02', title: '骑勇时代终结', description: '詹姆斯西迁火箭，杜兰特与勇士的骑勇对决路线被改写。', vs_real_history: '真实历史：2018年总决赛勇士4-0横扫骑士。' },
+    ],
+  },
+}
+
+function ruleKey(forkId: string, choiceId: string): string {
+  const year = forkId.replace('evt_lebron_', '')
+  return `lebron_${choiceId}_${year}`
+}
+
+export function lookupCrossImpact(forkId: string, choiceId: string) {
+  return RULES[ruleKey(forkId, choiceId)] ?? null
+}
+
+export function computeChoiceRipple(forkId: string, choice: ChoiceData): PlayerFateDelta[] {
+  const rule = lookupCrossImpact(forkId, choice.choice_id)
+  if (rule?.immediate_fates) {
+    return rule.immediate_fates.map((f) => ({
+      playerId: f.player_id,
+      legacy: f.legacy ?? 0,
+      ringChance: f.ring_chance ?? 0,
+      mediaHeat: f.media_heat ?? 0,
+      teamFit: f.team_fit ?? 0,
+      reason: f.reason,
+    }))
+  }
+  return []
+}
+
+type CareerSeed = Omit<PlayerCareerEvent, 'id'>
+
+export function computeChoiceCareerRipple(forkId: string, choice: ChoiceData): CareerSeed[] {
+  const rule = lookupCrossImpact(forkId, choice.choice_id)
+  if (rule?.immediate_career_events) {
+    return rule.immediate_career_events.map((e) => ({
+      playerId: e.player_id,
+      timestamp: e.timestamp,
+      title: e.title,
+      description: e.description,
+      vsRealHistory: e.vs_real_history ?? '',
+      sourceEventTitle: choice.label,
+    }))
+  }
+  return []
+}

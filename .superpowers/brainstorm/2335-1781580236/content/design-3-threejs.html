@@ -1,0 +1,141 @@
+<h2>设计 §3：Three.js 场景图 &amp; 粒子系统</h2>
+<p class="subtitle">场景层级 · 力导向布局 · 粒子消散/聚合 · 相机</p>
+
+<div class="section">
+  <h3>场景层级树</h3>
+  <pre style="margin:0;background:rgba(255,255,255,0.04);padding:16px;font-size:12px;line-height:1.6;">
+Scene
+├── starFieldGroup           ← 星空背景（5000 粒子 Points, 缓慢旋转）
+│
+├── ambientLight             ← 环境光，确保暗面可见
+├── pointLight × 2           ← 两颗点光源，分别暖金/冷蓝
+│
+├── graphGroup               ← 所有节点+线，整个 group 可旋转缩放
+│   ├── masterLineGroup      ← 金色历史线节点集合
+│   │   ├── forkNodeMesh     ← 分叉点（大球 + TorusGeometry 光环）
+│   │   ├── eventNodeMesh[]  ← 事件球体（0.3～0.8 半径）
+│   │   └── edgeLine[]       ← 连线（TubeGeometry）
+│   │
+│   ├── branchLineGroup      ← 橙色/团队色分支线
+│   │   ├── eventNodeMesh[]
+│   │   └── edgeLine[]
+│   │
+│   └── particleFlowGroup    ← 连线上粒子流动（每条连线 50-100 粒子）
+│
+└── dissolveGroup            ← 消散中/聚合中的过渡粒子（临时 group）</pre>
+</div>
+
+<div class="section">
+  <h3>3D 力导向布局策略</h3>
+  <div class="mockup">
+    <div class="mockup-header">节点位置计算：混合力导向 + 约束锚定</div>
+    <div class="mockup-body" style="font-size:12px;line-height:1.6;padding:12px;">
+      <p>不用 3d-force-graph，但借鉴其力导向算法思想，自己写简化版：</p>
+
+      <pre style="margin:0;background:rgba(255,255,255,0.04);padding:12px;line-height:1.6;">
+力导向规则（每帧 tick）：
+  ● 排斥力：所有节点互斥 → 防止重叠
+  ● 弹簧力：有连线的节点互相吸引 → 保持拓扑关系
+  ● 锚定力：master 线节点沿 X 轴分布，锚定在 x = eventIndex * 1.5
+  ● 分支力：分支线节点从分叉点向 Z- 轴偏移，y 轴轻微下弯
+  ● 阻尼：速度 × 0.95，防止抖动
+
+初始化布局：
+  master[0] = (0,    0, 0)    ← 2010 分叉点
+  master[1] = (1.5,  0, 0)    ← 2010 签约
+  master[2] = (3.0,  0, 0)    ← 2011 总决赛
+  ...
+  branch[0] = (0,    0, 0)    ← 共享分叉点
+  branch[1] = (0.3, -0.5, -1.2)  ← 从分叉点向下 + 向后
+  branch[2] = (1.0, -0.8, -2.0)
+  ...</pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>粒子消散动画（Dissolve）</h3>
+  <div class="mockup">
+    <div class="mockup-header">当用户选择非真实选项 → master 线节点逐级消散</div>
+    <div class="mockup-body" style="font-size:12px;line-height:1.6;padding:12px;">
+      <p><strong>流程：</strong></p>
+      <ol style="margin:0 0 12px 16px;color:#cbd5e1;">
+        <li>克隆要被消散的节点/连线的 geometry → 转成点数据</li>
+        <li>创建临时 BufferGeometry（粒子云，每节点 200-500 粒子）</li>
+        <li>ShaderMaterial：opacity 从 1→0, position 从原始位置 → 随机散射方向</li>
+        <li>GSAP timeline：每个节点间隔 150ms 开始消散，时长 800ms</li>
+        <li>消散完成后移除原 mesh + 粒子 group，dispose geometry</li>
+      </ol>
+
+      <pre style="margin:0;background:rgba(255,255,255,0.04);padding:12px;line-height:1.6;">
+// 简化 Shader
+vertexShader: `
+  attribute float aRandomAngle;
+  uniform float uProgress;    // 0→1
+  uniform vec3 uOrigin;
+  varying float vAlpha;
+  void main() {
+    vec3 scatter = vec3(
+      sin(aRandomAngle * 6.28) * uProgress * 3.0,
+      cos(aRandomAngle * 6.28) * uProgress * 2.0,
+      (aRandomAngle - 0.5) * uProgress * 2.0
+    );
+    vec3 pos = uOrigin + scatter;
+    vAlpha = 1.0 - uProgress;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+    gl_PointSize = 4.0 * (1.0 - uProgress * 0.5);
+  }
+`</pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>粒子聚合动画（Coalesce）</h3>
+  <div class="mockup">
+    <div class="mockup-header">AI 生成新节点时 → 粒子从虚空中聚合形成球体</div>
+    <div class="mockup-body" style="font-size:12px;line-height:1.6;padding:12px;">
+      <pre style="margin:0;background:rgba(255,255,255,0.04);padding:12px;line-height:1.6;">
+// 聚合是消散的逆过程
+vertexShader: `
+  attribute vec3 aTargetPosition;   // 节点最终位置
+  varying float vAlpha;
+  void main() {
+    vec3 scattered = // 随机初始位置（球壳上）
+    vec3 pos = mix(scattered, aTargetPosition, uProgress);
+    vAlpha = uProgress;
+    gl_PointSize = mix(0.5, 3.0, uProgress);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  }
+`
+
+// 聚合完成后 → 粒子 group 替换为真正的节点 mesh（带光环）
+// 过渡：最后一帧粒子色与节点 mesh 色一致，视觉无缝衔接</pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>相机系统</h3>
+  <div class="mockup">
+    <div class="mockup-header">OrbitControls + 自动飞入</div>
+    <div class="mockup-body" style="font-size:12px;line-height:1.6;padding:12px;">
+      <pre style="margin:0;background:rgba(255,255,255,0.04);padding:12px;line-height:1.6;">
+默认视角：俯视 30°，距离 8 单位
+OrbitControls：
+  - 鼠标滚轮：缩放 (2～20 单位)
+  - 左键拖拽：旋转（限制 360° 水平 / 15°～75° 俯仰）
+  - 右键拖拽：平移
+  - enableDamping: true (惯性)
+
+自动飞入（GSAP）：
+  - 点击节点 → camera 飞到节点前方 2 单位
+  - 双击空白 → camera 回到默认视角
+  - 分支切换 → camera 飞向新分支的第一个节点
+
+视锥剔除：
+  - 距离 > 15 单位的节点不渲染
+  - 屏幕外节点 skip 粒子计算</pre>
+    </div>
+  </div>
+</div>

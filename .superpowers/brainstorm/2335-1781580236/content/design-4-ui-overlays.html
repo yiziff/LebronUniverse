@@ -1,0 +1,93 @@
+<h2>设计 §4：六芒星雷达 &amp; 虚拟舆论瀑布流</h2>
+<p class="subtitle">Two React overlays on top of Three.js Canvas</p>
+
+<div class="section">
+  <h3>六芒星雷达 — HexagramRadar.tsx</h3>
+  <div class="mockup">
+    <div class="mockup-header">右下角固定浮层 · SVG 六边形雷达图</div>
+    <div class="mockup-body" style="font-size:12px;padding:16px;">
+
+      <pre style="margin:0;background:rgba(255,255,255,0.04);padding:12px;line-height:1.4;">
+        🏆 总冠军    ──── 3
+        👑 历史地位   ──── 78
+        📺 媒体好感   ──── 92  ← 加盟纽约后飙升
+        ❤️ 球迷口碑   ──── 65
+        💰 薪资健康   ──── 41  ← 大合同吃空间
+        ⚡ 体能透支   ──── 35  ← 还好，没到后期
+      </pre>
+
+      <p style="margin-top:12px;color:#94a3b8;"><strong>SVG 实现方案：</strong></p>
+      <ol style="margin:0;color:#cbd5e1;line-height:1.7;">
+        <li>6 条轴线从中心发出，角度间隔 60°</li>
+        <li>每条轴标注：图标 + 名称 + 最大值</li>
+        <li>当前数值连成的六边形（fill: 半透明团队色）</li>
+        <li>数值变动时：GSAP 动画顶点位置平滑过渡（duration: 0.6s, ease: elasticOut）</li>
+        <li>颜色编码：每个顶点独立着色 — 绿色(&gt;70) / 黄色(40-70) / 红色(&lt;40)</li>
+        <li>数值旁边显示 delta 标签：+25 绿色闪烁、-15 红色闪烁，1.5s 后消失</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>虚拟舆论瀑布流 — SocialFeed.tsx</h3>
+  <div class="mockup">
+    <div class="mockup-header">左侧边栏 · 虚拟推特卡片流</div>
+    <div class="mockup-body" style="font-size:12px;padding:16px;">
+
+      <pre style="margin:0;background:rgba(255,255,255,0.04);padding:12px;line-height:1.4;">
+┌─────────────────────────┐
+│ 🔴 Stephen A. Smith     │ ← 名嘴，情绪色边框
+│ @stephenasmith          │
+│ "LEBRON TO THE KNICKS?! │
+│  This changes EVERYTHING│
+│  in the Eastern Conf..."│
+│              😱 shocked │
+├─────────────────────────┤
+│ 🟡 KnicksMuse           │ ← 球迷号
+│ @knicksmuse             │
+│ "WE GOT BRON.           │
+│  LEAGUE = FRAUDULENT.   │
+│  NYC TAKEOVER STARTS NOW│
+│  🗽🗽🗽"                 │
+│           🎉 excited    │
+├─────────────────────────┤
+│ 🟣 NBAMemes              │ ← 恶搞
+│ @nbamemes               │
+│ "Cavs fans right now:   │
+│  [insert crying Jordan   │
+│   meme]"                 │
+│             😏 sarcastic│
+└─────────────────────────┘
+      </pre>
+
+      <p style="margin-top:12px;color:#94a3b8;"><strong>交互行为：</strong></p>
+      <ul style="margin:0;color:#cbd5e1;line-height:1.7;">
+        <li>LLM 生成 3-5 条后，以 200ms stagger 间隔从顶部滑入</li>
+        <li>anim: translateX(-100% → 0), opacity 0→1, duration 0.4s</li>
+        <li>新帖子到达时旧帖向下推（自然瀑布流）</li>
+        <li>悬停时卡片微微放大 + 停止自动滚动</li>
+        <li>情感色编码边框：angry=红 / excited=金 / sarcastic=紫 / shocked=蓝</li>
+        <li>5s 后旧帖自动淡出（除非用户悬停），最多同时显示 5 条</li>
+        <li>底部小字："以上内容由 AI 生成，仅为娱乐效果"</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>状态栏 — StatusBar.tsx</h3>
+  <div class="mockup">
+    <div class="mockup-header">底部居中 · 轮播生成文案</div>
+    <div class="mockup-body" style="font-size:12px;padding:16px;">
+      <table style="width:100%;color:#cbd5e1;font-size:12px;">
+        <tr style="color:#94a3b8;"><th style="text-align:left;padding:6px;">阶段</th><th style="text-align:left;padding:6px;">显示文案（随机轮播）</th></tr>
+        <tr><td style="padding:6px;">idle</td><td style="padding:6px;">"点击脉动的金色节点，改变 NBA 历史"</td></tr>
+        <tr><td style="padding:6px;">choosing</td><td style="padding:6px;">"选择勒布朗的命运……"</td></tr>
+        <tr><td style="padding:6px;">generating</td><td style="padding:6px;">"正在推演 2011 年东部格局……" / "正在计算韦德的下一站……" / "正在模拟 2012 年选秀大会……"</td></tr>
+        <tr><td style="padding:6px;">complete</td><td style="padding:6px;">"平行宇宙推演完成 · 2010-2014"</td></tr>
+        <tr><td style="padding:6px;">error</td><td style="padding:6px;">"⚠️ AI 推演出错 · 点击重试"</td></tr>
+      </table>
+    </div>
+  </div>
+</div>

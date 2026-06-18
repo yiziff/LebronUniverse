@@ -1,0 +1,158 @@
+<h2>设计 §2：Zustand Store + SSE 协议</h2>
+<p class="subtitle">前后端数据契约，改这里的代价最大</p>
+
+<div class="section">
+  <h3>SSE 事件流（FastAPI → 前端）</h3>
+  <pre style="margin:0;background:rgba(255,255,255,0.04);padding:16px;font-size:12px;line-height:1.6;">
+POST /api/generate/{choice_id}
+
+event: timeline_event
+data: {
+  "event_id": "gen_nyk_000",
+  "timestamp": "2010-07-08",
+  "title": "勒布朗降临纽约",
+  "description": "詹姆斯在ESPN宣布加盟尼克斯...",
+  "teams_affected": ["NYK", "CLE"],
+  "key_players": ["lebron-james"],
+  "confidence": 0.95
+}
+
+event: stat_update
+data: {
+  "dimension": "media_favor",       ← 维度 ID
+  "delta": 25,                       ← ± 数值
+  "reason": "加盟全球最大市场"        ← 变动原因
+}
+
+event: social_post
+data: {
+  "username": "Stephen A. Smith",
+  "handle": "@stephenasmith",
+  "avatar_color": "#E53E3E",
+  "content": "LEBRON TO THE KNICKS?! Madison Square Garden will never be the same!",
+  "sentiment": "shocked"            ← angry | excited | sarcastic | shocked
+}
+
+event: done
+data: { "status": "complete" }
+
+event: error
+data: { "message": "AI 推演超时，请重试" }</pre>
+</div>
+
+<div class="section">
+  <h3>Zustand Store（4 切片）</h3>
+  <pre style="margin:0;background:rgba(255,255,255,0.04);padding:16px;font-size:12px;line-height:1.6;">
+// ─── graphSlice ───
+interface GraphNode {
+  id: string
+  type: 'fork' | 'event' | 'player'
+  label: string
+  timestamp: string
+  position: { x: number; y: number; z: number }
+  color: string
+  size: number              // 0.3～1.0
+  parentId?: string         // 分叉来源
+  isRealHistory: boolean
+  isClickable: boolean
+}
+
+interface GraphEdge {
+  source: string
+  target: string
+  color: string
+  thickness: number
+  isParticleFlow: boolean   // 是否带粒子流动光效
+}
+
+interface GraphSlice {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+  masterBrightness: number   // 0.0～1.0, 选分支后变暗
+  activeBranchId: string | null
+}
+
+// ─── rpgSlice ───
+interface RPGStats {
+  championships: number      // 0～7
+  legacy: number             // 0～100
+  mediaFavor: number         // 0～100
+  fanReputation: number      // 0～100
+  capHealth: number          // 0～100
+  physicalToll: number       // 0～100, 越高越差
+}
+
+interface StatDelta {
+  dimension: keyof RPGStats
+  delta: number
+  reason: string
+  eventId: string            // 关联哪个事件
+}
+
+// ─── socialSlice ───
+interface SocialPost {
+  id: string
+  username: string
+  handle: string
+  avatarColor: string
+  content: string
+  sentiment: 'angry' | 'excited' | 'sarcastic' | 'shocked'
+  timestamp: string
+}
+
+// ─── uiSlice ───
+type AppPhase = 'idle' | 'choosing' | 'generating' | 'complete'
+
+interface UISlice {
+  phase: AppPhase
+  selectedChoiceId: string | null
+  isWheelOpen: boolean
+  errorMessage: string | null
+  statusText: string          // 底部轮播文案
+}</pre>
+</div>
+
+<div class="section">
+  <h3>useSSE Hook 分发逻辑</h3>
+  <pre style="margin:0;background:rgba(255,255,255,0.04);padding:16px;font-size:12px;line-height:1.6;">
+function useSSE(choiceId: string) {
+  const addNode = useGraphStore(s => s.addNode)
+  const addEdge = useGraphStore(s => s.addEdge)
+  const setMasterBrightness = useGraphStore(s => s.setBrightness)
+  const applyStatDelta = useRPGStore(s => s.applyDelta)
+  const pushPost = useSocialStore(s => s.push)
+  const setPhase = useUIStore(s => s.setPhase)
+
+  useEffect(() => {
+    const es = new EventSource(`/api/generate/${choiceId}`)
+
+    es.addEventListener('timeline_event', (e) => {
+      const data = JSON.parse(e.data)
+      addNode({ /* GraphNode from event */ })
+      addEdge({ /* from prev node to new node */ })
+    })
+
+    es.addEventListener('stat_update', (e) => {
+      const data = JSON.parse(e.data)
+      applyStatDelta(data.dimension, data.delta, data.reason)
+    })
+
+    es.addEventListener('social_post', (e) => {
+      const data = JSON.parse(e.data)
+      pushPost({ ...data, id: nanoid(), timestamp: Date.now() })
+    })
+
+    es.addEventListener('done', () => setPhase('complete'))
+    es.addEventListener('error', (e) => {
+      const data = JSON.parse(e.data)
+      useUIStore.setState({ errorMessage: data.message })
+    })
+
+    return () => es.close()
+  }, [choiceId])
+
+  // 首次触发：变暗 master 线
+  setMasterBrightness(0.25)
+  setPhase('generating')
+}</pre>
+</div>
