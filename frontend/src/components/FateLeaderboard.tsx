@@ -1,17 +1,36 @@
+import * as THREE from 'three'
 import { useStore } from '../store'
 import { playerNameZh } from '../utils/inferPlayerImpact'
 import { UI, UI_WIDTH } from '../styles/uiTypography'
+import { cameraBridge } from '../engine/CameraController'
+import { playerColor } from '../data/keyPlayers'
+import { resolveParallelBranchTip } from '../utils/parallelForkLayout'
+import { FORK_ORDER } from '../utils/loadMasterTimeline'
 import PlayerCareerTimeline from './PlayerCareerTimeline'
 
 export default function FateLeaderboard() {
   const playerFates = useStore((s) => s.playerFates)
   const playerStars = useStore((s) => s.playerStars)
   const phase = useStore((s) => s.phase)
+  const nodes = useStore((s) => s.nodes)
+  const edges = useStore((s) => s.edges)
+  const rpgStats = useStore((s) => s.rpgStats)
+  const completedForks = useStore((s) => s.completedForks)
+  const narrativeEvents = useStore((s) => s.narrativeEvents)
   const selectedPlayerId = useStore((s) => s.selectedPlayerId)
   const selectedNpcNodeId = useStore((s) => s.selectedNpcNodeId)
   const npcTimelineNodes = useStore((s) => s.npcTimelineNodes)
   const setSelectedPlayerId = useStore((s) => s.setSelectedPlayerId)
+  const setFeaturedEvent = useStore((s) => s.setFeaturedEvent)
   const pulsingPlayerIds = useStore((s) => s.pulsingPlayerIds)
+
+  const jamesStar = playerStars.find((p) => p.id === 'lebron-james')
+  const jamesRealCount = nodes.filter(
+    (n) => !n.hidden && n.isRealHistory && n.type === 'event',
+  ).length
+  const jamesParCount = nodes.filter(
+    (n) => !n.hidden && !n.isRealHistory && n.type === 'event',
+  ).length
 
   const npcStars = playerStars.filter((p) => p.id !== 'lebron-james')
 
@@ -23,13 +42,74 @@ export default function FateLeaderboard() {
     return { ...p, realCount, parCount, fate, swing: fate?.totalSwing ?? 0 }
   })
 
-  const ranked = [...npcList]
+  const swingRanked = [...npcList]
     .filter((x) => x.swing > 0)
     .sort((a, b) => b.swing - a.swing)
+
+  const showLegacyRank = completedForks.length > 0 || phase === 'complete'
+  const legacyRanked = [...playerStars]
+    .map((p) => {
+      const legacy =
+        p.id === 'lebron-james' ? rpgStats.legacy : (playerFates[p.id]?.legacy ?? 50)
+      return {
+        id: p.id,
+        nameZh: p.nameZh,
+        color: p.color,
+        legacy,
+        delta: legacy - 50,
+      }
+    })
+    .sort((a, b) => b.legacy - a.legacy)
 
   const selectedNpcNode = selectedNpcNodeId
     ? npcTimelineNodes.find((n) => n.id === selectedNpcNodeId)
     : null
+
+  const flyToJamesParallelChain = () => {
+    let tip = nodes
+      .filter((n) => !n.hidden && !n.isRealHistory && n.type === 'event')
+      .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+      .at(-1) ?? null
+
+    if (!tip && completedForks.length > 0) {
+      const lastFork = completedForks[completedForks.length - 1]
+      tip = resolveParallelBranchTip(lastFork, nodes, edges)
+    }
+
+    if (!tip) {
+      const activeFork = FORK_ORDER.find(
+        (id) => !completedForks.includes(id),
+      )
+      const forkNode = activeFork
+        ? nodes.find((n) => n.id === activeFork && !n.hidden)
+        : null
+      if (forkNode && cameraBridge.flyToBranch) {
+        cameraBridge.flyToBranch(
+          new THREE.Vector3(
+            forkNode.position.x + 2,
+            forkNode.position.y,
+            forkNode.position.z,
+          ),
+        )
+      }
+      return
+    }
+
+    const branchNarrative = narrativeEvents
+      .filter((e) => e.isBranch)
+      .at(-1)
+    if (branchNarrative) setFeaturedEvent(branchNarrative.id)
+
+    if (cameraBridge.flyToBranch) {
+      cameraBridge.flyToBranch(
+        new THREE.Vector3(
+          tip.position.x + 1.5,
+          tip.position.y,
+          tip.position.z,
+        ),
+      )
+    }
+  }
 
   return (
     <div
@@ -62,15 +142,127 @@ export default function FateLeaderboard() {
         </span>
       </div>
 
+      {showLegacyRank && (
+        <div style={{ marginBottom: 10 }}>
+          <div
+            style={{
+              color: '#94a3b8',
+              fontSize: UI.caption,
+              fontWeight: 700,
+              marginBottom: 6,
+              letterSpacing: 0.5,
+            }}
+          >
+            历史地位排行
+          </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(128px, 1fr))',
+              gap: 4,
+            }}
+          >
+            {legacyRanked.map((p, idx) => (
+              <div
+                key={p.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '5px 8px',
+                  borderRadius: 6,
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                }}
+              >
+                <span
+                  style={{
+                    color: idx < 3 ? '#f59e0b' : '#64748b',
+                    fontSize: UI.caption,
+                    fontWeight: 700,
+                    width: 14,
+                  }}
+                >
+                  {idx + 1}
+                </span>
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: '50%',
+                    background: p.color,
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ color: p.color, fontSize: UI.caption, fontWeight: 600 }}>
+                  {p.nameZh}
+                </span>
+                <span style={{ marginLeft: 'auto', color: '#e2e8f0', fontSize: UI.caption }}>
+                  {Math.round(p.legacy)}
+                </span>
+                <span
+                  style={{
+                    color: p.delta >= 0 ? '#4ade80' : '#ef4444',
+                    fontSize: 11,
+                  }}
+                >
+                  {p.delta >= 0 ? '+' : ''}{Math.round(p.delta)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <p style={{ color: '#64748b', fontSize: UI.caption, margin: '0 0 8px', lineHeight: UI.lineHeight }}>
-        开局可见真实 NBA 生涯（较暗）；替詹姆斯做选择后，亮色平行链会从分叉点改写 TA 的命运。
+        勒布朗走中央金色主轴；其他球星为辐射线。较暗为真实历史，较亮为平行宇宙。
       </p>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {jamesStar && (
+          <button
+            type="button"
+            onClick={flyToJamesParallelChain}
+            style={{
+              flex: '1 1 100%',
+              textAlign: 'left',
+              background: 'rgba(212,168,83,0.12)',
+              border: `1px solid ${playerColor('lebron-james')}66`,
+              borderRadius: 8,
+              padding: '8px 10px',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: jamesStar.color,
+                  boxShadow: `0 0 6px ${jamesStar.color}88`,
+                }}
+              />
+              <span style={{ color: jamesStar.color, fontSize: UI.body, fontWeight: 700 }}>
+                {jamesStar.nameZh}
+              </span>
+              <span style={{ color: '#64748b', fontSize: UI.caption }}>可操控 · 中央主轴</span>
+              <span style={{ marginLeft: 'auto', color: '#64748b', fontSize: UI.caption }}>
+                真实 {jamesRealCount} · 平行 {jamesParCount}
+              </span>
+            </div>
+            {jamesParCount > 0 && (
+              <div style={{ marginTop: 4, fontSize: UI.caption, color: '#94a3b8' }}>
+                点击定位詹姆斯平行宇宙链 · 历史地位 {Math.round(rpgStats.legacy)}
+              </div>
+            )}
+          </button>
+        )}
+
         {npcList.map((p) => {
           const isSelected = selectedPlayerId === p.id
           const isPulsing = pulsingPlayerIds.includes(p.id)
-          const rankIdx = ranked.findIndex((r) => r.id === p.id)
+          const rankIdx = swingRanked.findIndex((r) => r.id === p.id)
           const brightness = Math.min(p.swing / 80, 1)
           return (
             <button
@@ -132,7 +324,7 @@ export default function FateLeaderboard() {
         })}
       </div>
 
-      {selectedPlayerId && (
+      {selectedPlayerId && selectedPlayerId !== 'lebron-james' && (
         <PlayerFateDetail
           playerId={selectedPlayerId}
           highlightNode={selectedNpcNode}

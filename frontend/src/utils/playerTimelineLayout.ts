@@ -167,7 +167,7 @@ export function forkAnchorForPlayer(
 }
 
 export function npcNodeSize(segmentKind: 'real' | 'parallel', isLatest?: boolean): number {
-  const base = segmentKind === 'real' ? 0.18 : 0.32
+  const base = segmentKind === 'real' ? 0.14 : 0.34
   return isLatest ? base * 1.12 : base
 }
 

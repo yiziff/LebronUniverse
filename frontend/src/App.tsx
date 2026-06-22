@@ -12,7 +12,7 @@ import StatusBar from './components/StatusBar'
 import PlayerColorLegend from './components/PlayerColorLegend'
 import { cameraBridge } from './engine/CameraController'
 import {
-  fetchUniverseData, buildTimelineGraph, isForkClickable,
+  fetchUniverseData, buildTimelineGraph,
 } from './utils/loadMasterTimeline'
 import { setNebulaCenter } from './data/keyPlayers'
 import { resolveCareerMilestones } from './data/careerMilestones'
@@ -29,6 +29,7 @@ export default function App() {
   const initPlayerConstellation = useStore((s) => s.initPlayerConstellation)
   const initUniverse = useStore((s) => s.initUniverse)
   const rebuildNpcTimelines = useStore((s) => s.rebuildNpcTimelines)
+  const reconcileParallelForks = useStore((s) => s.reconcileParallelForks)
   const loadStarted = useRef(false)
 
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function App() {
 
         initPlayerConstellation()
         rebuildNpcTimelines()
+        reconcileParallelForks()
         timelineInitDone = true
 
         cameraBridge.resetView?.()
@@ -87,14 +89,8 @@ export default function App() {
     if (npcTimelineNodes.length === 0) {
       rebuildNpcTimelines()
     }
-    useStore.setState((s) => ({
-      nodes: s.nodes.map((n) =>
-        n.type === 'fork'
-          ? { ...n, isClickable: isForkClickable(n.id, completedForks) }
-          : n,
-      ),
-    }))
-  }, [completedForks, nodes.length, npcTimelineNodes.length, rebuildNpcTimelines])
+    reconcileParallelForks()
+  }, [completedForks, nodes.length, npcTimelineNodes.length, rebuildNpcTimelines, reconcileParallelForks])
 
   return (
     <>

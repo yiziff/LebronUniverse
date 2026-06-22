@@ -12,6 +12,7 @@ import { createPlayerTimelineNebula } from './PlayerTimelineNebula'
 import { buildTimelineNodeObject, buildTimelineNodeLabel } from './TimelineNodeFactory'
 import { computeTimelineMeta } from '../utils/timelineOrder'
 import { applySoftTimelineLinks } from './TimelineLinkStyle'
+import { isGhostForkAnchor } from '../utils/parallelForkLayout'
 import type { GraphNode, GraphEdge } from '../types'
 
 function applyTimelineVisuals(
@@ -29,8 +30,10 @@ function applyTimelineVisuals(
   })
 
   fg.nodeLabel((node: any) => {
-    const data = { ...(node as GraphNode), __meta: metaMap.get(node.id) }
-    return buildTimelineNodeLabel(data)
+    const data = node as GraphNode
+    if (data.hidden && data.type === 'fork') return ''
+    const withMeta = { ...data, __meta: metaMap.get(data.id) }
+    return buildTimelineNodeLabel(withMeta)
   })
 
   applySoftTimelineLinks(fg, nodes, metaMap, masterBrightness)
@@ -271,27 +274,38 @@ export default function ThreeCanvas() {
     const fg = fgRef.current
     if (!fg) return
 
-    const visibleNodes = nodes.filter((n) => !n.hidden)
+    const visibleNodes = nodes.filter((n) => {
+      if (!n.hidden) return true
+      const nodeMap = new Map(nodes.map((node) => [node.id, node]))
+      return isGhostForkAnchor(n, edges, nodeMap)
+    })
     const visibleNodeIds = new Set(visibleNodes.map((n) => n.id))
     const visibleEdges = edges.filter(
       (e) =>
         !e.hidden &&
         !e.isRipple &&
         !e.ephemeral &&
-        visibleNodeIds.has(e.source) &&
-        visibleNodeIds.has(e.target),
+        visibleNodeIds.has(e.target) &&
+        visibleNodeIds.has(e.source),
     )
 
     const metaMap = computeTimelineMeta(nodes, edges)
 
     fg.graphData({
-      nodes: visibleNodes.map((n) => ({
-        ...n,
-        __meta: metaMap.get(n.id),
-        fx: n.isRealHistory || n.parentId ? n.position.x : undefined,
-        fy: n.isRealHistory || n.parentId ? n.position.y : undefined,
-        fz: n.isRealHistory || n.parentId ? n.position.z : undefined,
-      })),
+      nodes: visibleNodes.map((n) => {
+        const pinPosition =
+          n.isRealHistory ||
+          !!n.parentId ||
+          n.forkPlacement === 'parallel' ||
+          n.type === 'fork'
+        return {
+          ...n,
+          __meta: metaMap.get(n.id),
+          fx: pinPosition ? n.position.x : undefined,
+          fy: pinPosition ? n.position.y : undefined,
+          fz: pinPosition ? n.position.z : undefined,
+        }
+      }),
       links: visibleEdges.map((e) => ({
         source: e.source,
         target: e.target,

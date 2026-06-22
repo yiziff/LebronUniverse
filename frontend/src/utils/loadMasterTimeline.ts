@@ -5,15 +5,23 @@ import type {
 import { primeBackendMode } from './apiClient'
 import { resolveCareerMilestones } from '../data/careerMilestones'
 
-const FORK_ORDER = [
+export const FORK_ORDER = [
   'evt_lebron_2010',
   'evt_lebron_2014',
   'evt_lebron_2017',
   'evt_lebron_2018',
-]
+] as const
+
+export type ForkId = (typeof FORK_ORDER)[number]
+
+export function nextForkId(forkId: string): string | null {
+  const idx = FORK_ORDER.indexOf(forkId as ForkId)
+  if (idx === -1 || idx >= FORK_ORDER.length - 1) return null
+  return FORK_ORDER[idx + 1]
+}
 
 export function isForkClickable(forkId: string, completedForks: string[]): boolean {
-  const idx = FORK_ORDER.indexOf(forkId)
+  const idx = FORK_ORDER.indexOf(forkId as ForkId)
   if (idx === -1) return false
   if (completedForks.includes(forkId)) return false
   if (idx === 0) return true
@@ -83,7 +91,7 @@ export async function fetchUniverseData(): Promise<UniverseAPIResponse> {
       completed_forks: [],
     },
     available_forks: legacy.available_forks ?? [forkFromDecision(legacy.decision_event)],
-    fork_order: FORK_ORDER,
+    fork_order: [...FORK_ORDER],
     master_timeline: master,
     career_milestones: resolveCareerMilestones(legacy.career_milestones),
     cached_branches: legacy.cached_branches ?? [],
@@ -99,11 +107,6 @@ export function buildTimelineGraph(
   const { master_timeline } = data
   const forkColor = '#D4A853'
   const masterColor = '#D4A853'
-
-  const forkByAfter = new Map<string | null, string>()
-  for (const f of master_timeline.forks) {
-    forkByAfter.set(f.insert_after_event_id, f.fork_id)
-  }
 
   let x = 0
   let prevId: string | null = null
@@ -122,6 +125,7 @@ export function buildTimelineGraph(
     size: 0.85,
     isRealHistory: true,
     isClickable: isForkClickable(firstForkId, completedForks),
+    forkPlacement: 'master',
   }
   addNode(forkNode0)
   prevId = forkNode0.id
@@ -154,34 +158,6 @@ export function buildTimelineGraph(
       })
     }
     prevId = evt.event_id
-
-    const nextForkId = forkByAfter.get(evt.event_id)
-    if (nextForkId) {
-      x += 1.5
-      const forkMeta = data.available_forks.find((f) => f.fork_id === nextForkId)
-      const forkNode: GraphNode = {
-        id: nextForkId,
-        type: 'fork',
-        label: forkMeta?.title ?? nextForkId,
-        description: forkMeta?.description ?? '',
-        timestamp: forkMeta?.timestamp ?? evt.timestamp,
-        position: { x, y: 1.2, z: 0 },
-        color: forkColor,
-        size: 0.85,
-        isRealHistory: true,
-        isClickable: isForkClickable(nextForkId, completedForks),
-      }
-      addNode(forkNode)
-      addEdge({
-        id: `edge_${prevId}_${nextForkId}`,
-        source: prevId,
-        target: nextForkId,
-        color: masterColor,
-        thickness: 0.03,
-        isParticleFlow: true,
-      })
-      prevId = nextForkId
-    }
   })
 
   return timelineCenterX(master_timeline)

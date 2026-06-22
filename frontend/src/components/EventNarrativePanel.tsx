@@ -36,11 +36,11 @@ export default function EventNarrativePanel() {
     <div
       style={{
         position: 'fixed',
-        top: 16,
-        left: 16,
+        top: 12,
+        left: 12,
         zIndex: 10,
-        width: `min(${UI_WIDTH.narrativePanel}px, 42vw)`,
-        maxHeight: 'calc(100vh - 120px)',
+        width: `min(${UI_WIDTH.narrativePanel}px, 36vw)`,
+        maxHeight: 'min(340px, calc(100vh - 320px))',
         overflowY: 'auto',
         scrollbarWidth: 'thin',
         pointerEvents: 'none',
@@ -49,13 +49,13 @@ export default function EventNarrativePanel() {
       {phase === 'generating' && !featured && (
         <div
           style={{
-            background: 'rgba(10,10,30,0.9)',
+            background: 'rgba(10,10,30,0.88)',
             border: `1px solid ${activeTeamColor}44`,
-            borderRadius: 14,
-            padding: '18px 22px',
+            borderRadius: 10,
+            padding: '12px 14px',
             textAlign: 'center',
             color: '#94a3b8',
-            fontSize: UI.bodyLarge,
+            fontSize: UI.bodySmall,
           }}
         >
           ⚡ 平行宇宙正在写入……
@@ -67,37 +67,38 @@ export default function EventNarrativePanel() {
           ref={cardRef}
           style={{
             pointerEvents: 'auto',
-            background: 'rgba(8,8,24,0.92)',
-            border: `1px solid ${featured.teamColor}66`,
-            borderRadius: 14,
-            padding: '18px 22px',
-            boxShadow: `0 8px 32px ${featured.teamColor}22, 0 0 60px ${featured.teamColor}11`,
+            background: 'rgba(8,8,24,0.88)',
+            border: `1px solid ${featured.teamColor}55`,
+            borderRadius: 10,
+            padding: '10px 12px',
+            boxShadow: `0 6px 24px ${featured.teamColor}18, 0 0 40px ${featured.teamColor}0a`,
           }}
         >
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 8,
-              marginBottom: 10,
+              gap: 6,
+              marginBottom: 6,
+              flexWrap: 'wrap',
             }}
           >
             <span
               style={{
-                fontSize: UI.caption,
+                fontSize: 11,
                 fontWeight: 700,
-                letterSpacing: 1,
+                letterSpacing: 0.5,
                 color: featured.teamColor,
                 background: `${featured.teamColor}22`,
-                padding: '4px 10px',
+                padding: '2px 7px',
                 borderRadius: 4,
               }}
             >
               {featured.isBranch ? '⚡ 平行宇宙' : '📜 历史节点'}
             </span>
-            <span style={{ color: '#64748b', fontSize: UI.bodySmall }}>{featured.timestamp}</span>
+            <span style={{ color: '#64748b', fontSize: UI.caption }}>{featured.timestamp}</span>
             {featured.teamsAffected && featured.teamsAffected.length > 0 && (
-              <span style={{ marginLeft: 'auto', color: '#94a3b8', fontSize: UI.caption }}>
+              <span style={{ marginLeft: 'auto', color: '#94a3b8', fontSize: 11 }}>
                 {featured.teamsAffected.join(' · ')}
               </span>
             )}
@@ -105,11 +106,11 @@ export default function EventNarrativePanel() {
 
           <h2
             style={{
-              margin: '0 0 12px',
+              margin: '0 0 6px',
               color: '#f1f5f9',
-              fontSize: UI.title,
+              fontSize: UI.bodyLarge,
               fontWeight: 700,
-              lineHeight: 1.3,
+              lineHeight: 1.35,
             }}
           >
             {featured.title}
@@ -119,8 +120,12 @@ export default function EventNarrativePanel() {
             style={{
               margin: 0,
               color: '#cbd5e1',
-              fontSize: UI.bodyLarge,
-              lineHeight: UI.lineHeightRelaxed,
+              fontSize: UI.bodySmall,
+              lineHeight: 1.5,
+              display: '-webkit-box',
+              WebkitLineClamp: 4,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
             }}
           >
             {featured.description}
@@ -131,10 +136,10 @@ export default function EventNarrativePanel() {
       {history.length > 0 && (
         <div
           style={{
-            marginTop: 8,
+            marginTop: 6,
             display: 'flex',
             flexDirection: 'column',
-            gap: 6,
+            gap: 4,
             pointerEvents: 'auto',
           }}
         >
@@ -145,15 +150,18 @@ export default function EventNarrativePanel() {
               onClick={() => setFeaturedEvent(evt.id)}
               style={{
                 textAlign: 'left',
-                background: 'rgba(10,10,30,0.75)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: 8,
-                padding: '10px 14px',
+                background: 'rgba(10,10,30,0.72)',
+                border: '1px solid rgba(255,255,255,0.05)',
+                borderRadius: 6,
+                padding: '6px 10px',
                 cursor: 'pointer',
                 color: '#94a3b8',
-                fontSize: UI.bodySmall,
-                lineHeight: UI.lineHeight,
+                fontSize: UI.caption,
+                lineHeight: 1.45,
                 transition: 'background 0.15s',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'rgba(255,255,255,0.06)'

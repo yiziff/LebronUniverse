@@ -43,29 +43,30 @@ export default function ButterflyEffectPanel() {
       style={{
         position: 'fixed',
         top: 88,
-        right: 16,
+        right: 12,
         zIndex: 12,
-        width: `min(${UI_WIDTH.butterflyPanel}px, 88vw)`,
-        background: 'rgba(6,6,22,0.92)',
-        border: '1px solid rgba(251,191,36,0.25)',
-        borderRadius: 12,
-        padding: '12px 14px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
-        maxHeight: 'calc(100vh - 120px)',
+        width: `min(${UI_WIDTH.butterflyPanel}px, 72vw)`,
+        background: 'rgba(6,6,22,0.88)',
+        border: '1px solid rgba(251,191,36,0.2)',
+        borderRadius: 10,
+        padding: '8px 10px',
+        boxShadow: '0 6px 24px rgba(0,0,0,0.4)',
+        maxHeight: 'min(360px, calc(100vh - 320px))',
         overflowY: 'auto',
+        scrollbarWidth: 'thin',
       }}
     >
-      <div style={{ marginBottom: 10 }}>
-        <div style={{ color: '#fbbf24', fontSize: UI.panelTitle, fontWeight: 700, letterSpacing: 0.5 }}>
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ color: '#fbbf24', fontSize: UI.caption, fontWeight: 700, letterSpacing: 0.3 }}>
           🦋 蝴蝶效应 · 因果链
         </div>
         {activeChoiceLabel && (
-          <div style={{ color: '#94a3b8', fontSize: UI.bodySmall, marginTop: 4 }}>
+          <div style={{ color: '#94a3b8', fontSize: UI.caption, marginTop: 2 }}>
             最新选择：<span style={{ color: '#e2e8f0' }}>{activeChoiceLabel}</span>
           </div>
         )}
         {jamesChoices.length > 0 && (
-          <div style={{ color: '#64748b', fontSize: UI.caption, marginTop: 5 }}>
+          <div style={{ color: '#64748b', fontSize: 11, marginTop: 3 }}>
             {jamesChoices.map((c) => getForkLabel(c.fork_id)).join(' → ')}
           </div>
         )}
@@ -74,20 +75,20 @@ export default function ButterflyEffectPanel() {
       {orderedGroups.map((forkId) => {
         const groupEntries = [...(grouped.get(forkId) ?? [])].reverse().slice(0, 4)
         return (
-          <div key={forkId} style={{ marginBottom: 12 }}>
+          <div key={forkId} style={{ marginBottom: 8 }}>
             <div
               style={{
                 color: '#f59e0b',
-                fontSize: UI.caption,
+                fontSize: 11,
                 fontWeight: 700,
-                marginBottom: 6,
-                paddingBottom: 5,
-                borderBottom: '1px solid rgba(251,191,36,0.15)',
+                marginBottom: 4,
+                paddingBottom: 3,
+                borderBottom: '1px solid rgba(251,191,36,0.12)',
               }}
             >
               {getForkLabel(forkId)}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
               {groupEntries.map((e) => {
                 const color = playerStars.find((p) => p.id === e.playerId)?.color ?? '#888'
                 const net = netDelta(e)
@@ -95,32 +96,40 @@ export default function ButterflyEffectPanel() {
                   <div
                     key={e.id}
                     style={{
-                      padding: '9px 11px',
-                      borderRadius: 8,
+                      padding: '6px 8px',
+                      borderRadius: 6,
                       background: 'rgba(255,255,255,0.03)',
-                      border: `1px solid ${color}33`,
+                      border: `1px solid ${color}28`,
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ color, fontWeight: 700, fontSize: UI.body }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ color, fontWeight: 700, fontSize: UI.bodySmall }}>
                         {playerNameZh(e.playerId)}
                       </span>
                       <span
                         style={{
                           marginLeft: 'auto',
-                          fontSize: UI.bodySmall,
+                          fontSize: UI.caption,
                           fontWeight: 700,
                           color: net >= 0 ? '#4ade80' : '#f87171',
+                          flexShrink: 0,
                         }}
                       >
                         {net >= 0 ? '↑' : '↓'} {fmtDelta(net)}
                       </span>
                     </div>
-                    <div style={{ fontSize: UI.caption, color: '#64748b', marginTop: 4 }}>
-                      {e.source === 'choice' ? '⚡ 选择冲击' : '📅 事件余波'}
-                      {e.eventTitle ? ` · ${e.eventTitle.slice(0, 14)}` : ''}
-                    </div>
-                    <div style={{ fontSize: UI.bodySmall, color: '#94a3b8', marginTop: 4, lineHeight: UI.lineHeight }}>
+                    <div
+                      style={{
+                        fontSize: UI.caption,
+                        color: '#94a3b8',
+                        marginTop: 3,
+                        lineHeight: 1.45,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
                       {e.reason}
                     </div>
                   </div>

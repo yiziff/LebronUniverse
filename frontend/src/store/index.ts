@@ -11,7 +11,12 @@ import {
 } from '../data/keyPlayers'
 import { resolveCareerMilestones } from '../data/careerMilestones'
 import { syncUniverseIfAvailable } from '../utils/apiClient'
-import { fetchUniverseData } from '../utils/loadMasterTimeline'
+import { fetchUniverseData, isForkClickable, nextForkId, FORK_ORDER } from '../utils/loadMasterTimeline'
+import {
+  computeNextForkPosition,
+  hideEdgesForNodes,
+  resolveParallelBranchTip,
+} from '../utils/parallelForkLayout'
 import {
   buildAllRealLanes, buildParallelNodeAtPosition, connectParallelToChain,
   forkAnchorForPlayer, isSensitiveToFork, milestoneYear,
@@ -92,6 +97,10 @@ export interface AppStore {
   setMasterBrightness: (b: number) => void
   resetGraph: () => void
   hideMasterTailAfterFork: (forkId?: string) => void
+  hideResolvedMasterForks: (completedForkId: string) => void
+  lockForkDuringGeneration: (forkId: string) => void
+  spawnNextParallelFork: (completedForkId: string) => string | null
+  reconcileParallelForks: () => void
 
   playerStars: PlayerStar[]
   playerFates: Record<string, PlayerFate>
@@ -219,7 +228,9 @@ export const useStore = create<AppStore>((set, get) => ({
         : s.nodes.findIndex((n) => n.type === 'fork')
       if (forkIdx === -1) return {}
       const hiddenIds = new Set(
-        s.nodes.filter((n, i) => n.isRealHistory && i > forkIdx).map((n) => n.id),
+        s.nodes.filter(
+          (n, i) => i > forkIdx && n.isRealHistory && n.type !== 'fork',
+        ).map((n) => n.id),
       )
       return {
         nodes: s.nodes.map((n) => (hiddenIds.has(n.id) ? { ...n, hidden: true } : n)),
@@ -230,6 +241,144 @@ export const useStore = create<AppStore>((set, get) => ({
         ),
       }
     }),
+
+  hideResolvedMasterForks: (completedForkId) =>
+    set((s) => {
+      const hiddenIds = new Set<string>([completedForkId])
+      for (const n of s.nodes) {
+        if (n.type !== 'fork') continue
+        if (s.completedForks.includes(n.id)) hiddenIds.add(n.id)
+        if (n.forkPlacement === 'master') hiddenIds.add(n.id)
+        if (
+          n.forkPlacement !== 'parallel' &&
+          n.isRealHistory &&
+          FORK_ORDER.indexOf(n.id as (typeof FORK_ORDER)[number]) > 0
+        ) {
+          hiddenIds.add(n.id)
+        }
+      }
+      return {
+        nodes: s.nodes.map((n) =>
+          hiddenIds.has(n.id) ? { ...n, hidden: true, isClickable: false } : n,
+        ),
+        edges: hideEdgesForNodes(s.edges, hiddenIds),
+      }
+    }),
+
+  lockForkDuringGeneration: (forkId) =>
+    set((s) => ({
+      nodes: s.nodes.map((n) => {
+        if (n.id === forkId) return { ...n, isClickable: false }
+        if (
+          n.type === 'fork' &&
+          n.forkPlacement !== 'parallel' &&
+          FORK_ORDER.indexOf(n.id as (typeof FORK_ORDER)[number]) > 0
+        ) {
+          return { ...n, hidden: true, isClickable: false }
+        }
+        return n
+      }),
+    })),
+
+  spawnNextParallelFork: (completedForkId) => {
+    const s = get()
+    const nextId = nextForkId(completedForkId)
+    if (!nextId) return null
+
+    const existingParallel = s.nodes.find(
+      (n) => n.id === nextId && n.forkPlacement === 'parallel' && !n.hidden,
+    )
+    if (existingParallel) return nextId
+
+    const cleanedNodes = s.nodes.map((n) =>
+      n.id === nextId && n.forkPlacement !== 'parallel'
+        ? { ...n, hidden: true, isClickable: false }
+        : n,
+    )
+
+    const tip = resolveParallelBranchTip(completedForkId, cleanedNodes, s.edges)
+    if (!tip) return null
+
+    const forkMeta = s.availableForks.find((f) => f.fork_id === nextId)
+    const forkColor = '#D4A853'
+    const pos = computeNextForkPosition(tip.position)
+
+    const forkNode: GraphNode = {
+      id: nextId,
+      type: 'fork',
+      label: forkMeta?.title ?? nextId,
+      description: forkMeta?.description ?? '',
+      timestamp: forkMeta?.timestamp ?? tip.timestamp,
+      position: pos,
+      color: forkColor,
+      size: 0.85,
+      isRealHistory: false,
+      isClickable: isForkClickable(nextId, s.completedForks),
+      forkPlacement: 'parallel',
+    }
+
+    const edge: GraphEdge = {
+      id: `edge_${tip.id}_${nextId}`,
+      source: tip.id,
+      target: nextId,
+      color: forkColor,
+      thickness: 0.04,
+      isParticleFlow: true,
+    }
+
+    set({
+      nodes: [...cleanedNodes, forkNode],
+      edges: [...s.edges, edge],
+    })
+    return nextId
+  },
+
+  reconcileParallelForks: () => {
+    const s = get()
+    const hiddenIds = new Set<string>()
+
+    for (const n of s.nodes) {
+      if (n.type !== 'fork') continue
+      if (s.completedForks.includes(n.id)) hiddenIds.add(n.id)
+      if (n.forkPlacement === 'master' && s.completedForks.length > 0) {
+        hiddenIds.add(n.id)
+      }
+      if (
+        n.forkPlacement !== 'parallel' &&
+        n.isRealHistory &&
+        FORK_ORDER.indexOf(n.id as (typeof FORK_ORDER)[number]) > 0
+      ) {
+        hiddenIds.add(n.id)
+      }
+    }
+
+    set((state) => ({
+      nodes: state.nodes.map((n) =>
+        hiddenIds.has(n.id) ? { ...n, hidden: true, isClickable: false } : n,
+      ),
+      edges: hideEdgesForNodes(state.edges, hiddenIds),
+    }))
+
+    if (s.completedForks.length > 0) {
+      const lastCompleted = s.completedForks[s.completedForks.length - 1]
+      const nextId = nextForkId(lastCompleted)
+      if (nextId) {
+        const exists = get().nodes.some(
+          (n) => n.id === nextId && n.forkPlacement === 'parallel' && !n.hidden,
+        )
+        if (!exists) get().spawnNextParallelFork(lastCompleted)
+      }
+    }
+
+    const completed = get().completedForks
+    set((state) => ({
+      nodes: state.nodes.map((n) =>
+        n.type === 'fork' && !n.hidden
+          ? { ...n, isClickable: isForkClickable(n.id, completed) }
+          : n,
+      ),
+    }))
+  },
 
   playerStars: buildInitialStars(),
   playerFates: buildInitialFates(),
@@ -904,5 +1053,6 @@ export const useStore = create<AppStore>((set, get) => ({
       butterflyEntries: [],
       activeChoiceLabel: '',
     })
+    get().reconcileParallelForks()
   },
 }))

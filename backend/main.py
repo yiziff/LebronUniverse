@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from pathlib import Path
 from typing import AsyncGenerator
 
 from dotenv import load_dotenv
@@ -47,6 +48,33 @@ app.add_middleware(
 )
 
 branch_cache: dict[str, GeneratedBranch] = {}
+CACHE_FILE = Path(__file__).resolve().parent.parent / "data" / "branch_cache.json"
+
+
+def _load_disk_cache() -> None:
+    if not CACHE_FILE.exists():
+        return
+    try:
+        raw = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+        for key, payload in raw.items():
+            branch_cache[key] = GeneratedBranch(**payload)
+    except Exception as exc:
+        print(f"[cache] failed to load disk cache: {exc}")
+
+
+def _save_disk_cache() -> None:
+    try:
+        CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        payload = {k: v.model_dump() for k, v in branch_cache.items()}
+        CACHE_FILE.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    except Exception as exc:
+        print(f"[cache] failed to save disk cache: {exc}")
+
+
+_load_disk_cache()
 
 
 def _cache_key(universe_id: str, fork_id: str, choice_id: str) -> str:
@@ -137,6 +165,8 @@ async def sync_universe(body: UniverseSyncBody):
 async def reset_universe_state():
     """Reset universe to initial 2010 state."""
     branch_cache.clear()
+    if CACHE_FILE.exists():
+        CACHE_FILE.unlink()
     state = reset_universe()
     return {"status": "reset", "world_state": state.model_dump()}
 
@@ -222,9 +252,7 @@ async def _stream_branch(
         for sc in cached.stat_changes:
             yield f"event: stat_update\ndata: {json.dumps(sc.model_dump(), ensure_ascii=False)}\n\n"
         posts = cached.social_posts or _fallback_social_posts(choice_id, cached.events)
-        for i, sp in enumerate(posts):
-            if i > 0:
-                await asyncio.sleep(0.45)
+        for sp in posts:
             yield f"event: social_post\ndata: {json.dumps(sp.model_dump(), ensure_ascii=False)}\n\n"
         yield "event: done\ndata: {}\n\n"
         return
@@ -264,6 +292,7 @@ async def _stream_branch(
         social_posts=posts_buffer,
     )
     branch_cache[cache_key] = branch
+    _save_disk_cache()
     yield "event: done\ndata: {}\n\n"
 
 
@@ -315,6 +344,8 @@ async def generate_branch_legacy(choice_id: str):
 @app.post("/api/cache/clear")
 async def clear_cache():
     branch_cache.clear()
+    if CACHE_FILE.exists():
+        CACHE_FILE.unlink()
     return {"status": "cleared"}
 
 

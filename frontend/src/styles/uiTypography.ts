@@ -12,7 +12,8 @@ export const UI = {
 } as const
 
 export const UI_WIDTH = {
-  narrativePanel: 420,
+  narrativePanel: 300,
   fateLeaderboard: 720,
-  butterflyPanel: 340,
+  butterflyPanel: 260,
+  radarPanel: 200,
 } as const

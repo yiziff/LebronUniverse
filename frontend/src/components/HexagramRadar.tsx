@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useStore } from '../store'
 import type { RPGSixDimensions, StatDelta } from '../types'
+import { UI_WIDTH } from '../styles/uiTypography'
 import gsap from 'gsap'
 
 const DIMENSIONS: { key: keyof RPGSixDimensions; label: string; icon: string }[] = [
@@ -107,17 +108,17 @@ export default function HexagramRadar() {
     <div
       style={{
         position: 'fixed',
-        bottom: 20,
-        right: 20,
+        bottom: 16,
+        right: 12,
         zIndex: 10,
-        background: 'rgba(10,10,30,0.85)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 12,
-        padding: 12,
-        width: 260,
+        background: 'rgba(10,10,30,0.82)',
+        border: '1px solid rgba(255,255,255,0.06)',
+        borderRadius: 10,
+        padding: 8,
+        width: UI_WIDTH.radarPanel,
       }}
     >
-      <svg viewBox="0 0 240 240" width="100%" height={240}>
+      <svg viewBox="0 0 240 240" width="100%" height={176}>
         {[0.25, 0.5, 0.75, 1.0].map((scale) => {
           const bgPts = DIMENSIONS.map((_, i) => {
             const [x, y] = getVertex(i, 100 * scale)

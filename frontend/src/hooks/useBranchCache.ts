@@ -1,89 +1,124 @@
-import { useCallback, useEffect, useState } from 'react';
-import type { GeneratedEvent } from '../types';
+import { useCallback, useEffect, useState } from 'react'
+import type {
+  GeneratedEvent,
+  SocialPostPayload,
+  StatUpdatePayload,
+} from '../types'
 
-const CACHE_PREFIX = 'nba_branch_';
-const CACHE_INDEX_KEY = 'nba_branch_index';
+const CACHE_PREFIX = 'nba_branch_v2_'
+const CACHE_INDEX_KEY = 'nba_branch_v2_index'
 
-/** Get the list of cached branch choice IDs */
-export function getCachedBranchIds(): string[] {
+export interface CachedBranch {
+  forkId: string
+  choiceId: string
+  events: GeneratedEvent[]
+  statUpdates: StatUpdatePayload[]
+  socialPosts: SocialPostPayload[]
+  savedAt: number
+}
+
+export function makeBranchCacheKey(forkId: string, choiceId: string): string {
+  return `${forkId}:${choiceId}`
+}
+
+function storageKey(cacheKey: string): string {
+  return CACHE_PREFIX + cacheKey
+}
+
+/** Get cached branch keys (forkId:choiceId). */
+export function getCachedBranchKeys(): string[] {
   try {
-    const raw = localStorage.getItem(CACHE_INDEX_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as string[];
+    const raw = localStorage.getItem(CACHE_INDEX_KEY)
+    if (!raw) return []
+    return JSON.parse(raw) as string[]
   } catch {
-    return [];
+    return []
   }
 }
 
-/** Save a generated branch to localStorage */
-export function saveBranchToCache(
-  choiceId: string,
-  events: GeneratedEvent[],
-): void {
-  try {
-    const key = CACHE_PREFIX + choiceId;
-    localStorage.setItem(key, JSON.stringify(events));
+export function isBranchCached(forkId: string, choiceId: string): boolean {
+  return loadBranchFromCache(forkId, choiceId) != null
+}
 
-    // Update index
-    const index = getCachedBranchIds();
-    if (!index.includes(choiceId)) {
-      index.push(choiceId);
-      localStorage.setItem(CACHE_INDEX_KEY, JSON.stringify(index));
+/** Save a full generated branch to localStorage. */
+export function saveBranchToCache(branch: CachedBranch): void {
+  try {
+    const cacheKey = makeBranchCacheKey(branch.forkId, branch.choiceId)
+    localStorage.setItem(
+      storageKey(cacheKey),
+      JSON.stringify({ ...branch, savedAt: Date.now() }),
+    )
+    const index = getCachedBranchKeys()
+    if (!index.includes(cacheKey)) {
+      index.push(cacheKey)
+      localStorage.setItem(CACHE_INDEX_KEY, JSON.stringify(index))
     }
   } catch (e) {
-    console.warn('Failed to cache branch:', e);
+    console.warn('Failed to cache branch:', e)
   }
 }
 
-/** Load a cached branch from localStorage */
+/** Load a cached branch; migrates legacy choiceId-only keys when possible. */
 export function loadBranchFromCache(
+  forkId: string,
   choiceId: string,
-): GeneratedEvent[] | null {
+): CachedBranch | null {
   try {
-    const key = CACHE_PREFIX + choiceId;
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    return JSON.parse(raw) as GeneratedEvent[];
+    const cacheKey = makeBranchCacheKey(forkId, choiceId)
+    const raw = localStorage.getItem(storageKey(cacheKey))
+    if (raw) return JSON.parse(raw) as CachedBranch
+
+    // Legacy v1 key: choiceId only
+    const legacyRaw = localStorage.getItem(`nba_branch_${choiceId}`)
+    if (!legacyRaw) return null
+    const events = JSON.parse(legacyRaw) as GeneratedEvent[]
+    if (!Array.isArray(events) || events.length === 0) return null
+    return {
+      forkId,
+      choiceId,
+      events,
+      statUpdates: [],
+      socialPosts: [],
+      savedAt: Date.now(),
+    }
   } catch {
-    return null;
+    return null
   }
 }
 
-/** Clear a specific cached branch */
-export function clearBranchCache(choiceId: string): void {
+export function clearBranchCache(forkId: string, choiceId: string): void {
   try {
-    localStorage.removeItem(CACHE_PREFIX + choiceId);
-    const index = getCachedBranchIds().filter((id) => id !== choiceId);
-    localStorage.setItem(CACHE_INDEX_KEY, JSON.stringify(index));
+    const cacheKey = makeBranchCacheKey(forkId, choiceId)
+    localStorage.removeItem(storageKey(cacheKey))
+    const index = getCachedBranchKeys().filter((k) => k !== cacheKey)
+    localStorage.setItem(CACHE_INDEX_KEY, JSON.stringify(index))
   } catch {
-    // ignore
+    /* ignore */
   }
 }
 
-/** Clear all cached branches */
 export function clearAllCache(): void {
   try {
-    const index = getCachedBranchIds();
-    for (const id of index) {
-      localStorage.removeItem(CACHE_PREFIX + id);
+    for (const key of getCachedBranchKeys()) {
+      localStorage.removeItem(storageKey(key))
     }
-    localStorage.removeItem(CACHE_INDEX_KEY);
+    localStorage.removeItem(CACHE_INDEX_KEY)
   } catch {
-    // ignore
+    /* ignore */
   }
 }
 
 /** React hook: track which branches are cached */
 export function useCachedBranches() {
-  const [cachedIds, setCachedIds] = useState<string[]>([]);
+  const [cachedKeys, setCachedKeys] = useState<string[]>([])
 
   useEffect(() => {
-    setCachedIds(getCachedBranchIds());
-  }, []);
+    setCachedKeys(getCachedBranchKeys())
+  }, [])
 
   const refresh = useCallback(() => {
-    setCachedIds(getCachedBranchIds());
-  }, []);
+    setCachedKeys(getCachedBranchKeys())
+  }, [])
 
-  return { cachedIds, refresh };
+  return { cachedKeys, refresh }
 }

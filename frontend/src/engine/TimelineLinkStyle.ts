@@ -1,5 +1,6 @@
 import type { GraphNode } from '../types'
 import type { TimelineNodeMeta } from '../utils/timelineOrder'
+import { mainTimelineRealDim } from './TimelineNodeFactory'
 
 export function flowLinkColor(baseHex: string, progress: number, dim = 1): string {
   const age = 1 - progress
@@ -20,7 +21,7 @@ export function applySoftTimelineLinks(
   fg: {
     linkWidth: (fn: (link: any) => number) => void
     linkColor: (fn: (link: any) => string) => void
-    linkOpacity: (n: number) => void
+    linkOpacity: (value: number | ((link: any) => number)) => void
     linkCurvature: (fn: (link: any) => number) => void
     linkDirectionalParticles: (n: number) => void
     linkDirectionalParticleWidth: (n: number) => void
@@ -31,7 +32,6 @@ export function applySoftTimelineLinks(
   metaMap: Map<string, TimelineNodeMeta>,
   masterBrightness: number,
 ) {
-  fg.linkOpacity(0.35)
   fg.linkCurvature((link: any) => {
     const sourceId = link.source?.id ?? link.source
     const m = metaMap.get(sourceId)
@@ -51,8 +51,14 @@ export function applySoftTimelineLinks(
     const sourceNode = nodes.find((n) => n.id === sourceId)
     const m = metaMap.get(sourceId)
     const base = sourceNode?.color ?? link.color ?? '#D4A853'
-    const dim = sourceNode?.isRealHistory ? masterBrightness : 1
+    const dim = sourceNode?.isRealHistory ? mainTimelineRealDim(masterBrightness) : 1
     return flowLinkColor(base, m?.progress ?? 0.5, dim)
+  })
+
+  fg.linkOpacity((link: any) => {
+    const sourceId = link.source?.id ?? link.source
+    const sourceNode = nodes.find((n) => n.id === sourceId)
+    return sourceNode?.isRealHistory ? 0.28 : 0.35
   })
 
   fg.linkDirectionalParticles(1)

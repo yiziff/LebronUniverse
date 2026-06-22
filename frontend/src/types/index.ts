@@ -16,6 +16,8 @@ export interface GraphNode {
   teamsAffected?: string[]
   ownerPlayerId?: string
   segmentKind?: 'real' | 'parallel'
+  /** Where a fork node lives: master spine (initial) or parallel branch tip. */
+  forkPlacement?: 'master' | 'parallel'
 }
 
 /** Thin career-thread node for NPC constellation timelines. */

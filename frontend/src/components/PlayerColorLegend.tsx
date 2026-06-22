@@ -43,7 +43,9 @@ export default function PlayerColorLegend() {
         })}
       </div>
       <div style={{ color: '#64748b', fontSize: UI.caption, marginTop: 8, lineHeight: UI.lineHeight }}>
-        同色球体 = 同一球星 · 较暗为真实历史 · 较亮为平行宇宙
+        勒布朗 · 中央金色主轴 · 较暗为真实 · 较亮为平行
+        <br />
+        其他球星 · 同色辐射线 · 较暗真实 · 较亮平行
       </div>
     </div>
   )

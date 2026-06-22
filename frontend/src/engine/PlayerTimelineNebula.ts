@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import type { NpcCrossLink, NpcTimelineEdge, NpcTimelineNode, PlayerStar } from '../types'
-import { buildNpcTimelineNodeObject } from './TimelineNodeFactory'
+import { buildNpcTimelineNodeObject, realSegmentDim } from './TimelineNodeFactory'
 import { flowLinkColor } from './TimelineLinkStyle'
 import { playerRealColor } from '../data/keyPlayers'
 
@@ -97,9 +97,9 @@ export function createPlayerTimelineNebula(scene: THREE.Scene) {
       if (reals.length === 0) continue
       const from = new THREE.Vector3(star.position.x, star.position.y, star.position.z)
       const to = new THREE.Vector3(reals[0].position.x, reals[0].position.y, reals[0].position.z)
-      const dim = masterBrightness * 0.55 + 0.35
+      const dim = realSegmentDim(masterBrightness)
       const stemColor = playerRealColor(star.id)
-      const tube = makeFlowTube(from, to, flowLinkColor(stemColor, 0.35, dim), 0.016, 0.48 * dim, 'real')
+      const tube = makeFlowTube(from, to, flowLinkColor(stemColor, 0.35, dim), 0.012, 0.26 * dim, 'real')
       tube.userData.playerId = star.id
       group.add(tube)
     }
@@ -111,12 +111,12 @@ export function createPlayerTimelineNebula(scene: THREE.Scene) {
       if (!from || !to) continue
 
       const isReal = e.segmentKind === 'real'
-      const dim = isReal ? masterBrightness * 0.55 + 0.35 : 1
-      const radius = isReal ? 0.018 : 0.026
-      const opacity = (isReal ? 0.55 : 0.72) * dim
+      const dim = isReal ? realSegmentDim(masterBrightness) : 1
+      const radius = isReal ? 0.01 : 0.028
+      const opacity = (isReal ? 0.28 : 0.78) * dim
       const linkColor = isReal
-        ? flowLinkColor(e.color, 0.5, dim)
-        : flowLinkColor(e.color, 0.75, 1)
+        ? flowLinkColor(e.color, 0.35, dim)
+        : flowLinkColor(e.color, 0.8, 1)
       const tube = makeFlowTube(from, to, linkColor, radius, opacity, e.segmentKind)
       tube.userData.playerId = e.playerId
       group.add(tube)
