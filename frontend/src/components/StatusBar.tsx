@@ -7,7 +7,19 @@ export default function StatusBar() {
   const statusSubtext = useStore((s) => s.statusSubtext)
   const phase = useStore((s) => s.phase)
   const activeTeamColor = useStore((s) => s.activeTeamColor)
+  const completedForks = useStore((s) => s.completedForks)
+  const resetUniverse = useStore((s) => s.resetUniverse)
   const { cancel } = useSSE()
+
+  const handleReset = async () => {
+    if (!window.confirm('重置整个平行宇宙？将清除所有詹姆斯选择与蝴蝶效应，回到 2010 年。')) return
+    try {
+      await resetUniverse()
+    } catch (err) {
+      console.error('[reset]', err)
+      useStore.getState().setStatusText('⚠️ 重置失败', '请确认后端已启动')
+    }
+  }
 
   return (
     <div
@@ -76,6 +88,24 @@ export default function StatusBar() {
             }}
           >
             ✕ 取消
+          </button>
+        )}
+        {completedForks.length > 0 && phase !== 'generating' && (
+          <button
+            type="button"
+            onClick={handleReset}
+            style={{
+              background: 'rgba(239,68,68,0.12)',
+              border: '1px solid rgba(239,68,68,0.35)',
+              color: '#fca5a5',
+              fontSize: UI.bodySmall,
+              padding: '4px 10px',
+              borderRadius: 10,
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            重置宇宙
           </button>
         )}
       </div>

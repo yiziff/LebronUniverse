@@ -16,11 +16,17 @@ export default function ButterflyEffectPanel() {
   const entries = useStore((s) => s.butterflyEntries)
   const activeChoiceLabel = useStore((s) => s.activeChoiceLabel)
   const jamesChoices = useStore((s) => s.jamesChoices)
+  const completedForks = useStore((s) => s.completedForks)
   const playerStars = useStore((s) => s.playerStars)
   const phase = useStore((s) => s.phase)
   const getForkLabel = useStore((s) => s.getForkLabel)
 
-  const show = (phase === 'generating' || phase === 'complete') && entries.length > 0
+  const show =
+    entries.length > 0 &&
+    (phase === 'generating' ||
+      phase === 'complete' ||
+      completedForks.length > 0 ||
+      jamesChoices.length > 0)
 
   const grouped = useMemo(() => {
     const map = new Map<string, typeof entries>()

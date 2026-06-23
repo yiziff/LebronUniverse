@@ -11,6 +11,8 @@ import {
 } from '../data/keyPlayers'
 import { resolveCareerMilestones } from '../data/careerMilestones'
 import { syncUniverseIfAvailable } from '../utils/apiClient'
+import { clearAllCache } from '../hooks/useBranchCache'
+import { clearButterflyEntries, saveButterflyEntries } from '../utils/butterflyPersist'
 import { fetchUniverseData, isForkClickable, nextForkId, FORK_ORDER } from '../utils/loadMasterTimeline'
 import {
   computeNextForkPosition,
@@ -296,7 +298,16 @@ export const useStore = create<AppStore>((set, get) => ({
         : n,
     )
 
-    const tip = resolveParallelBranchTip(completedForkId, cleanedNodes, s.edges)
+    let tip = resolveParallelBranchTip(completedForkId, cleanedNodes, s.edges)
+    if (!tip) {
+      tip =
+        cleanedNodes
+          .filter((n) => !n.hidden && n.isRealHistory && n.type === 'event')
+          .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+          .at(-1) ??
+        cleanedNodes.find((n) => n.id === completedForkId) ??
+        null
+    }
     if (!tip) return null
 
     const forkMeta = s.availableForks.find((f) => f.fork_id === nextId)
@@ -393,7 +404,7 @@ export const useStore = create<AppStore>((set, get) => ({
       selectedPlayerId: null,
     }),
 
-  applyPlayerImpacts: (deltas, meta) =>
+  applyPlayerImpacts: (deltas, meta) => {
     set((s) => {
       const forkId = meta?.forkId ?? s.activeForkId ?? undefined
       const forkLabel = meta?.forkLabel ?? (forkId ? FORK_LABELS[forkId] : undefined)
@@ -434,7 +445,10 @@ export const useStore = create<AppStore>((set, get) => ({
         pulsingPlayerIds: pulsing,
         butterflyEntries: entries.slice(-48),
       }
-    }),
+    })
+    const { universeId, butterflyEntries } = get()
+    saveButterflyEntries(universeId, butterflyEntries)
+  },
 
   butterflyEntries: [],
   activeChoiceLabel: '',
@@ -602,26 +616,38 @@ export const useStore = create<AppStore>((set, get) => ({
 
   resetUniverse: async () => {
     const res = await fetch('/api/universe/reset', { method: 'POST' })
+    if (!res.ok) throw new Error('Failed to reset universe')
     const data = await res.json()
-    get().initUniverse({
-      world_state: data.world_state,
-      available_forks: get().availableForks,
-      career_milestones: get().careerMilestones,
-    })
+    clearAllCache()
+    clearButterflyEntries(get().universeId)
+    get().resetGraph()
     set({
-      nodes: [],
-      edges: [],
-      masterBrightness: 1.0,
       playerFates: buildInitialFates(),
       playerCareerEvents: {},
       butterflyEntries: [],
       jamesChoices: [],
       completedForks: [],
+      universeId: data.world_state?.universe_id ?? '',
       currentYear: 2010,
       phase: 'idle',
       narrativeEvents: [],
       posts: [],
+      rpgStats: { ...INITIAL_RPG },
+      statHistory: [],
+      recentStatBadges: [],
+      generationSnapshot: null,
+      isWheelOpen: false,
+      activeForkId: null,
+      statusText: '点击脉动的金色节点，改变 NBA 历史',
+      statusSubtext: '同色故事线 = 同一球星 · 较暗真实 · 较亮平行',
     })
+    get().initUniverse({
+      world_state: data.world_state,
+      available_forks: get().availableForks,
+      career_milestones: get().careerMilestones,
+    })
+    get().rebuildNpcTimelines()
+    window.dispatchEvent(new CustomEvent('nba-universe-reset'))
   },
 
   getFilteredChoices: (forkId) => {
